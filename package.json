@@ -1,0 +1,12 @@
+{
+  "name": "taiwan-stock-revenue-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Track Taiwan stock monthly revenue from MOPS.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

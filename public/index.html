@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>台股月營收追蹤</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">公開資訊觀測站</p>
+          <h1>台股月營收追蹤</h1>
+        </div>
+        <button id="refreshBtn" class="icon-button" title="立即檢查">
+          <span aria-hidden="true">↻</span>
+          <span>立即檢查</span>
+        </button>
+      </section>
+
+      <section class="status-strip" aria-live="polite">
+        <div>
+          <span class="label">目標資料</span>
+          <strong id="targetLabel">讀取中</strong>
+        </div>
+        <div>
+          <span class="label">自動檢查</span>
+          <strong>每月 1-11 日 17:00 後</strong>
+        </div>
+        <div>
+          <span class="label">狀態</span>
+          <strong id="pageStatus">準備中</strong>
+        </div>
+        <div>
+          <span class="label">分享網址</span>
+          <strong id="shareUrl">讀取中</strong>
+        </div>
+      </section>
+
+      <form id="addForm" class="add-form">
+        <label for="stockQuery">輸入台股代號或名稱</label>
+        <div class="input-row">
+          <input id="stockQuery" name="stockQuery" type="text" autocomplete="off" placeholder="例如 2330 或 台積電" required>
+          <button type="submit">加入追蹤</button>
+        </div>
+      </form>
+
+      <section class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>股票</th>
+              <th>目標月份</th>
+              <th>本月營收</th>
+              <th>年增率</th>
+              <th>累計營收</th>
+              <th>資料狀態</th>
+              <th>官方時間</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="stockRows">
+            <tr>
+              <td colspan="8" class="empty">尚未加入股票</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="source-note">
+        <strong>資料來源：</strong>
+        <a href="https://mops.twse.com.tw/mops/#/web/t05st10_ifrs" target="_blank" rel="noreferrer">公開資訊觀測站「月營業收入資訊」</a>
+        <span>。頁面只接受官方回傳月份等於目標月份的資料，否則會保持「尚未公布」。</span>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

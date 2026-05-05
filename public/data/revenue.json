@@ -1,0 +1,44 @@
+{
+  "mode": "github-pages",
+  "stocks": [
+    {
+      "id": "2330",
+      "code": "2330",
+      "name": "台灣積體電路製造股份有限公司",
+      "marketTitle": "上市半導體業",
+      "lastCheckedAt": "2026-05-05T17:25:36+08:00",
+      "lastStatus": "pending",
+      "lastMessage": "查無相符資料",
+      "revenue": {
+        "sourceName": "公開資訊觀測站",
+        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
+        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
+        "targetYymm": "11504",
+        "targetLabel": "2026 年 4 月",
+        "checkedAt": "2026-05-05T17:25:36+08:00",
+        "officialDatetime": "115/05/05 17:25:47",
+        "message": "查無相符資料",
+        "status": "pending",
+        "verified": false,
+        "reason": "查無相符資料"
+      }
+    }
+  ],
+  "target": {
+    "westernYear": 2026,
+    "rocYear": 115,
+    "month": 4,
+    "yymm": "11504",
+    "label": "2026 年 4 月"
+  },
+  "schedule": {
+    "timeZone": "Asia/Taipei",
+    "window": "每月 1 到 11 號，下午 5 點後每日自動檢查一次",
+    "source": "公開資訊觀測站月營業收入資訊"
+  },
+  "share": {
+    "localUrl": "",
+    "networkUrls": []
+  },
+  "updatedAt": "2026-05-05T17:25:36+08:00"
+}
