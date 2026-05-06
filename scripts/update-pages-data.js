@@ -181,7 +181,55 @@ async function readTrackedStocks() {
   return [...new Set(parsed.map(item => String(item).trim()).filter(Boolean))];
 }
 
+async function readPreviousSnapshot() {
+  try {
+    const raw = await fs.readFile(OUTPUT_PATH, "utf8");
+    return JSON.parse(raw);
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+function displayName(stock) {
+  return (
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
+    stock.name ||
+    stock.code ||
+    stock.id ||
+    ""
+  );
+}
+
+function buildAnnouncement(stocks, target, previousSnapshot) {
+  const previousByCode = new Map();
+  for (const stock of previousSnapshot && Array.isArray(previousSnapshot.stocks) ? previousSnapshot.stocks : []) {
+    if (stock && stock.code) previousByCode.set(String(stock.code), stock);
+  }
+
+  const newlyUpdated = stocks.filter(stock => {
+    if (stock.lastStatus !== "updated") return false;
+    const previous = previousByCode.get(String(stock.code));
+    return !previous ||
+      previous.lastStatus !== "updated" ||
+      !previous.revenue ||
+      previous.revenue.reportedYymm !== stock.revenue.reportedYymm;
+  });
+
+  const pending = stocks.filter(stock => stock.lastStatus !== "updated");
+
+  return {
+    generatedAt: taipeiParts().isoLike,
+    headline: `截止今日17:00 ${target.month}月月營收`,
+    newlyUpdatedCount: newlyUpdated.length,
+    newlyUpdatedNames: newlyUpdated.map(displayName).filter(Boolean),
+    pendingCount: pending.length,
+    pendingNames: pending.map(displayName).filter(Boolean)
+  };
+}
+
 async function buildSnapshot() {
+  const previousSnapshot = await readPreviousSnapshot();
   const target = targetRevenueMonth();
   const queries = await readTrackedStocks();
   const stocks = [];
@@ -227,6 +275,7 @@ async function buildSnapshot() {
     mode: "github-pages",
     stocks,
     target,
+    announcement: buildAnnouncement(stocks, target, previousSnapshot),
     schedule: {
       timeZone: TAIPEI_TIME_ZONE,
       window: "每月 1 到 11 號，下午 5 點後每日自動檢查一次",
