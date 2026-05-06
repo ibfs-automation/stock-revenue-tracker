@@ -8,6 +8,7 @@ const OUTPUT_PATH = path.join(OUTPUT_DIR, "revenue.json");
 const TAIPEI_TIME_ZONE = "Asia/Taipei";
 const MOPS_API_BASE = "https://mops.twse.com.tw/mops/api";
 const MOPS_PAGE_URL = "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs";
+const FORM_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSdHksE_5L1Tp8ufBSfT3fsytyRh_PQxvCsAQ5LE9hAClgLP6xuK2H8VY4acOm5MAOc9Kzm3yDpa5i1/pub?gid=865931488&single=true&output=csv";
 
 function taipeiParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -173,12 +174,82 @@ async function fetchRevenueForStock(stock, target) {
 
   return normalizeRevenueResult(stock, target, mopsResult);
 }
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let quoted = false;
 
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"' && quoted && next === '"') {
+      value += '"';
+      i++;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      row.push(value);
+      value = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") i++;
+      row.push(value);
+      if (row.some(cell => cell.trim() !== "")) rows.push(row);
+      row = [];
+      value = "";
+    } else {
+      value += char;
+    }
+  }
+
+  row.push(value);
+  if (row.some(cell => cell.trim() !== "")) rows.push(row);
+
+  const headers = rows.shift() || [];
+  return rows.map(cells => Object.fromEntries(
+    headers.map((header, index) => [header.trim(), String(cells[index] || "").trim()])
+  ));
+}
+
+async function readFormOperations() {
+  if (!FORM_CSV_URL) return [];
+
+  const response = await fetch(FORM_CSV_URL, {
+    headers: { "User-Agent": "Mozilla/5.0" }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google Sheets CSV HTTP ${response.status}`);
+  }
+
+  return parseCsv(await response.text());
+}
 async function readTrackedStocks() {
   const raw = await fs.readFile(TRACKED_STOCKS_PATH, "utf8");
   const parsed = JSON.parse(raw);
   if (!Array.isArray(parsed)) throw new Error("tracked-stocks.json must be an array");
-  return [...new Set(parsed.map(item => String(item).trim()).filter(Boolean))];
+
+  const stocks = parsed.map(item => String(item).trim()).filter(Boolean);
+  const operations = await readFormOperations();
+
+  for (const row of operations) {
+    const action = String(row["操作"] || "").trim();
+    const query = String(row["股票代號或簡稱"] || "").trim();
+    if (!query) continue;
+
+    if (action === "新增") {
+      if (!stocks.includes(query)) stocks.push(query);
+    }
+
+    if (action === "刪除") {
+      for (let i = stocks.length - 1; i >= 0; i--) {
+        if (stocks[i] === query) stocks.splice(i, 1);
+      }
+    }
+  }
+
+  return [...new Set(stocks)];
 }
 
 async function readPreviousSnapshot() {
