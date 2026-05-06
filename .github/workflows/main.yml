@@ -3,7 +3,7 @@ name: Update revenue data and publish Pages
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 9 1-11 * *"
+  - cron: "0,20,40 9 1-11 * *"
   push:
     branches:
       - main
@@ -12,6 +12,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 concurrency:
   group: pages
