@@ -373,7 +373,28 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   }
 
   const dailyUpdates = Array.from(dailyByDate.values());
+  const displayNameByAlias = new Map();
 
+  for (const stock of stocks) {
+    const formatted = displayName(stock);
+    const aliases = [
+      stock.id,
+      stock.code,
+      stock.name,
+      stock.revenue && stock.revenue.companyAbbreviation
+    ].filter(Boolean);
+
+    for (const alias of aliases) {
+      displayNameByAlias.set(String(alias), formatted);
+    }
+  }
+
+  for (const item of dailyUpdates) {
+    item.names = mergeUnique([], item.names.map(name =>
+      displayNameByAlias.get(String(name)) || name
+    ));
+    item.count = item.names.length;
+  }
   return {
     generatedAt: now.isoLike,
     headline: `${canRecordToday ? "截止今日17:00" : "尚未到今日17:00"} ${target.month}月月營收`,
