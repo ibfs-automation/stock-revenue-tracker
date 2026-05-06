@@ -10,6 +10,12 @@ const MOPS_API_BASE = "https://mops.twse.com.tw/mops/api";
 const MOPS_PAGE_URL = "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs";
 const FORM_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSdHksE_5L1Tp8ufBSfT3fsytyRh_PQxvCsAQ5LE9hAClgLP6xuK2H8VY4acOm5MAOc9Kzm3yDpa5i1/pub?gid=865931488&single=true&output=csv";
 
+const COMPANY_PROFILE_URLS = [
+  "https://mopsfin.twse.com.tw/opendata/t187ap03_L.csv",
+  "https://mopsfin.twse.com.tw/opendata/t187ap03_O.csv",
+  "https://mopsfin.twse.com.tw/opendata/t187ap03_R.csv"
+];
+
 function taipeiParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: TAIPEI_TIME_ZONE,
@@ -41,11 +47,14 @@ function targetRevenueMonth(date = new Date()) {
   const now = taipeiParts(date);
   let year = now.year;
   let month = now.month - 1;
+
   if (month === 0) {
     year -= 1;
     month = 12;
   }
+
   const rocYear = year - 1911;
+
   return {
     westernYear: year,
     rocYear,
@@ -75,105 +84,6 @@ async function mopsPost(apiName, body) {
   return response.json();
 }
 
-function flattenCompanyList(result) {
-  const groups = result && result.result && result.result.companyList;
-  if (!Array.isArray(groups)) return [];
-
-  return groups.flatMap(group => {
-    const rows = Array.isArray(group.data) ? group.data : [];
-    return rows.map(item => {
-      const text = String(item.result || "").trim();
-      const match = text.match(/^(\d{4,6})\s+(.+)$/);
-      return {
-        code: match ? match[1] : text.split(/\s+/)[0],
-        name: match ? match[2] : text,
-        marketTitle: group.title || "",
-        rawText: text
-      };
-    });
-  });
-}
-
-async function resolveCompany(query) {
-  const keyword = String(query || "").trim();
-  if (!keyword) throw new Error("Empty stock query");
-
-  const result = await mopsPost("KeywordsQuery", {
-    queryFunction: false,
-    keyword
-  });
-  const companies = flattenCompanyList(result);
-  if (!companies.length) throw new Error(`MOPS cannot find stock: ${keyword}`);
-
-  return companies.find(company => company.code === keyword) || companies[0];
-}
-
-function dataPairsToObject(data) {
-  const out = {};
-  if (!Array.isArray(data)) return out;
-  for (const row of data) {
-    if (Array.isArray(row) && row.length >= 2) out[row[0]] = row[1];
-  }
-  return out;
-}
-
-function normalizeRevenueResult(company, target, mopsResult) {
-  const now = taipeiParts().isoLike;
-  const base = {
-    sourceName: "公開資訊觀測站",
-    sourceUrl: MOPS_PAGE_URL,
-    sourceApi: `${MOPS_API_BASE}/t05st10_ifrs`,
-    targetYymm: target.yymm,
-    targetLabel: target.label,
-    checkedAt: now,
-    officialDatetime: mopsResult.datetime || null,
-    message: mopsResult.message || ""
-  };
-
-  if (mopsResult.code !== 200 || !mopsResult.result) {
-    return {
-      ...base,
-      status: "pending",
-      verified: false,
-      reason: mopsResult.message || "尚未公布"
-    };
-  }
-
-  const reportedYymm = String(mopsResult.result.yymm || "");
-  if (reportedYymm !== target.yymm) {
-    return {
-      ...base,
-      status: "pending",
-      verified: false,
-      reportedYymm,
-      reason: `官方回傳資料月份為 ${reportedYymm || "未知"}，不是目標月份 ${target.yymm}。`
-    };
-  }
-
-  return {
-    ...base,
-    status: "updated",
-    verified: true,
-    reportedYymm,
-    companyAbbreviation: mopsResult.result.companyAbbreviation || company.name,
-    marketKindName: mopsResult.result.marketKindName || company.marketTitle,
-    values: dataPairsToObject(mopsResult.result.data),
-    rawData: mopsResult.result.data || [],
-    note: mopsResult.result.note || ""
-  };
-}
-
-async function fetchRevenueForStock(stock, target) {
-  const mopsResult = await mopsPost("t05st10_ifrs", {
-    companyId: stock.code,
-    dataType: "2",
-    year: String(target.rocYear),
-    month: String(target.month),
-    subsidiaryCompanyId: ""
-  });
-
-  return normalizeRevenueResult(stock, target, mopsResult);
-}
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -207,81 +117,273 @@ function parseCsv(text) {
   if (row.some(cell => cell.trim() !== "")) rows.push(row);
 
   const headers = rows.shift() || [];
+
   return rows.map(cells => Object.fromEntries(
-    headers.map((header, index) => [header.trim(), String(cells[index] || "").trim()])
+    headers.map((header, index) => [
+      String(header || "").trim(),
+      String(cells[index] || "").trim()
+    ])
   ));
+}
+
+function decodeCsvBuffer(buffer) {
+  const utf8 = new TextDecoder("utf-8").decode(buffer);
+  if (!utf8.includes("�")) return utf8;
+
+  try {
+    return new TextDecoder("big5").decode(buffer);
+  } catch (error) {
+    return utf8;
+  }
+}
+
+async function fetchCsv(url) {
+  const response = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0" }
+  });
+
+  if (!response.ok) {
+    throw new Error(`CSV HTTP ${response.status}`);
+  }
+
+  const buffer = await response.arrayBuffer();
+  return parseCsv(decodeCsvBuffer(buffer));
+}
+
+async function readCompanyProfiles() {
+  const profilesByCode = new Map();
+  const profilesByName = new Map();
+
+  for (const url of COMPANY_PROFILE_URLS) {
+    try {
+      const rows = await fetchCsv(url);
+
+      for (const row of rows) {
+        const code = String(row["公司代號"] || "").trim();
+        const fullName = String(row["公司名稱"] || "").trim();
+        const abbreviation = String(row["公司簡稱"] || "").trim();
+        const industry = String(row["產業別"] || "").trim();
+
+        if (!code) continue;
+
+        const profile = {
+          code,
+          fullName,
+          abbreviation: abbreviation || fullName || code,
+          industry
+        };
+
+        profilesByCode.set(code, profile);
+
+        for (const alias of [code, fullName, abbreviation]) {
+          if (alias) profilesByName.set(String(alias).trim(), profile);
+        }
+      }
+    } catch (error) {
+      console.warn(`Cannot load company profile: ${url}`);
+    }
+  }
+
+  return { profilesByCode, profilesByName };
+}
+
+function profileToCompany(profile) {
+  return {
+    code: profile.code,
+    name: profile.abbreviation || profile.fullName || profile.code,
+    legalName: profile.fullName || "",
+    marketTitle: profile.industry || "",
+    rawText: `${profile.code} ${profile.abbreviation || profile.fullName || ""}`.trim()
+  };
+}
+
+function applyCompanyProfile(company, companyProfiles) {
+  const profile = companyProfiles &&
+    companyProfiles.profilesByCode.get(String(company.code));
+
+  if (!profile) return company;
+
+  return {
+    ...company,
+    legalName: company.name,
+    name: profile.abbreviation || company.name,
+    marketTitle: profile.industry || company.marketTitle
+  };
+}
+
+function stockKey(query, companyProfiles) {
+  const key = String(query || "").trim();
+  const profile = companyProfiles && companyProfiles.profilesByName.get(key);
+  return profile ? profile.code : key;
+}
+
+function flattenCompanyList(result) {
+  const groups = result && result.result && result.result.companyList;
+  if (!Array.isArray(groups)) return [];
+
+  return groups.flatMap(group => {
+    const rows = Array.isArray(group.data) ? group.data : [];
+
+    return rows.map(item => {
+      const text = String(item.result || "").trim();
+      const match = text.match(/^(\d{4,6})\s+(.+)$/);
+
+      return {
+        code: match ? match[1] : text.split(/\s+/)[0],
+        name: match ? match[2] : text,
+        marketTitle: group.title || "",
+        rawText: text
+      };
+    });
+  });
+}
+
+async function resolveCompany(query, companyProfiles) {
+  const keyword = String(query || "").trim();
+  if (!keyword) throw new Error("Empty stock query");
+
+  const profile = companyProfiles && companyProfiles.profilesByName.get(keyword);
+  if (profile) return profileToCompany(profile);
+
+  const result = await mopsPost("KeywordsQuery", {
+    queryFunction: false,
+    keyword
+  });
+
+  const companies = flattenCompanyList(result);
+  if (!companies.length) throw new Error(`MOPS cannot find stock: ${keyword}`);
+
+  const company = companies.find(item => item.code === keyword) || companies[0];
+  return applyCompanyProfile(company, companyProfiles);
+}
+
+function dataPairsToObject(data) {
+  const out = {};
+  if (!Array.isArray(data)) return out;
+
+  for (const row of data) {
+    if (Array.isArray(row) && row.length >= 2) out[row[0]] = row[1];
+  }
+
+  return out;
+}
+
+function shortCompanyName(company, mopsResult) {
+  return (
+    company.name ||
+    mopsResult.result.companyAbbreviation ||
+    company.legalName ||
+    company.code ||
+    ""
+  );
+}
+
+function normalizeRevenueResult(company, target, mopsResult) {
+  const now = taipeiParts().isoLike;
+  const base = {
+    sourceName: "公開資訊觀測站",
+    sourceUrl: MOPS_PAGE_URL,
+    sourceApi: `${MOPS_API_BASE}/t05st10_ifrs`,
+    targetYymm: target.yymm,
+    targetLabel: target.label,
+    checkedAt: now,
+    officialDatetime: mopsResult.datetime || null,
+    message: mopsResult.message || ""
+  };
+
+  if (mopsResult.code !== 200 || !mopsResult.result) {
+    return {
+      ...base,
+      status: "pending",
+      verified: false,
+      reason: mopsResult.message || "尚未公布"
+    };
+  }
+
+  const reportedYymm = String(mopsResult.result.yymm || "");
+
+  if (reportedYymm !== target.yymm) {
+    return {
+      ...base,
+      status: "pending",
+      verified: false,
+      reportedYymm,
+      reason: `官方回傳資料月份為 ${reportedYymm || "未知"}，不是目標月份 ${target.yymm}。`
+    };
+  }
+
+  return {
+    ...base,
+    status: "updated",
+    verified: true,
+    reportedYymm,
+    companyAbbreviation: shortCompanyName(company, mopsResult),
+    marketKindName: company.marketTitle || mopsResult.result.marketKindName || "",
+    values: dataPairsToObject(mopsResult.result.data),
+    rawData: mopsResult.result.data || [],
+    note: mopsResult.result.note || ""
+  };
+}
+
+async function fetchRevenueForStock(stock, target) {
+  const mopsResult = await mopsPost("t05st10_ifrs", {
+    companyId: stock.code,
+    dataType: "2",
+    year: String(target.rocYear),
+    month: String(target.month),
+    subsidiaryCompanyId: ""
+  });
+
+  return normalizeRevenueResult(stock, target, mopsResult);
 }
 
 async function readFormOperations() {
   if (!FORM_CSV_URL) return [];
 
-  const response = await fetch(FORM_CSV_URL, {
-    headers: { "User-Agent": "Mozilla/5.0" }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Google Sheets CSV HTTP ${response.status}`);
+  try {
+    return await fetchCsv(FORM_CSV_URL);
+  } catch (error) {
+    console.warn(`Cannot load Google Form CSV: ${error.message}`);
+    return [];
   }
-
-  return parseCsv(await response.text());
 }
-async function stockListContains(stocks, code) {
-  for (const stock of stocks) {
-    try {
-      const company = await resolveCompany(stock);
-      if (company.code === code) return true;
-    } catch (error) {
-      if (stock === code) return true;
-    }
-  }
 
-  return false;
-}
-async function readTrackedStocks() {
+async function readTrackedStocks(companyProfiles) {
   const raw = await fs.readFile(TRACKED_STOCKS_PATH, "utf8");
   const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed)) throw new Error("tracked-stocks.json must be an array");
 
-  const stocks = parsed.map(item => String(item).trim()).filter(Boolean);
+  if (!Array.isArray(parsed)) {
+    throw new Error("tracked-stocks.json must be an array");
+  }
+
+  const selected = new Map();
+
+  for (const item of parsed) {
+    const query = String(item).trim();
+    if (!query) continue;
+    selected.set(stockKey(query, companyProfiles), query);
+  }
+
   const operations = await readFormOperations();
 
   for (const row of operations) {
     const action = String(row["操作"] || "").trim();
     const query = String(row["股票代號或簡稱"] || "").trim();
+
     if (!query) continue;
 
-    let resolvedCode = query;
-    try {
-      const company = await resolveCompany(query);
-      resolvedCode = company.code;
-    } catch (error) {
-      resolvedCode = query;
-    }
+    const key = stockKey(query, companyProfiles);
 
     if (action === "新增") {
-      const exists = await stockListContains(stocks, resolvedCode);
-      if (!exists) stocks.push(query);
+      selected.set(key, query);
     }
 
     if (action === "刪除") {
-      for (let i = stocks.length - 1; i >= 0; i--) {
-        const current = stocks[i];
-        let currentCode = current;
-        try {
-          const company = await resolveCompany(current);
-          currentCode = company.code;
-        } catch (error) {
-          currentCode = current;
-        }
-
-        if (current === query || currentCode === resolvedCode) {
-          stocks.splice(i, 1);
-        }
-      }
+      selected.delete(key);
     }
   }
 
-  return [...new Set(stocks)];
+  return [...selected.values()];
 }
 
 async function readPreviousSnapshot() {
@@ -301,9 +403,9 @@ function displayName(stock) {
   const code = stock.code || (isCodeId ? id : "");
 
   const name = (
-    trackedName ||
     (stock.revenue && stock.revenue.companyAbbreviation) ||
     stock.name ||
+    trackedName ||
     ""
   );
 
@@ -315,16 +417,9 @@ function mergeUnique(left, right) {
   return [...new Set([...(left || []), ...(right || [])].filter(Boolean))];
 }
 
-function officialDateLabel(stock) {
-  const value = stock && stock.revenue && stock.revenue.officialDatetime;
-  const match = String(value || "").match(/^\d{2,3}\/(\d{2})\/(\d{2})/);
-  if (!match) return null;
-
-  return `${Number(match[1])}/${Number(match[2])}`;
-}
-
 function buildAnnouncement(stocks, target, previousSnapshot) {
   const previousByCode = new Map();
+
   for (const stock of previousSnapshot && Array.isArray(previousSnapshot.stocks) ? previousSnapshot.stocks : []) {
     if (stock && stock.code) previousByCode.set(String(stock.code), stock);
   }
@@ -332,6 +427,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   const now = taipeiParts();
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
   const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
+
   const previousDailyUpdates = previousSnapshot &&
     previousSnapshot.announcement &&
     Array.isArray(previousSnapshot.announcement.dailyUpdates)
@@ -343,6 +439,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   for (let day = 1; day <= 11; day++) {
     const dateLabel = `${now.month}/${day}`;
     const previous = previousDailyUpdates.find(item => item.dateLabel === dateLabel);
+
     dailyByDate.set(dateLabel, {
       dateLabel,
       count: previous && Array.isArray(previous.names) ? previous.names.length : 0,
@@ -364,6 +461,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   if (canRecordToday && dailyByDate.has(todayKey)) {
     const newlyUpdated = updatedStocks.filter(stock => {
       const previous = previousByCode.get(String(stock.code));
+
       return !previous ||
         previous.lastStatus !== "updated" ||
         !previous.revenue ||
@@ -380,10 +478,12 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
 
   for (const stock of stocks) {
     const formatted = displayName(stock);
+
     const aliases = [
       stock.id,
       stock.code,
       stock.name,
+      stock.legalName,
       stock.revenue && stock.revenue.companyAbbreviation
     ].filter(Boolean);
 
@@ -398,6 +498,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     ));
     item.count = item.names.length;
   }
+
   return {
     generatedAt: now.isoLike,
     headline: `${canRecordToday ? "截止今日17:00" : "尚未到今日17:00"} ${target.month}月月營收`,
@@ -412,17 +513,20 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
 async function buildSnapshot() {
   const previousSnapshot = await readPreviousSnapshot();
   const target = targetRevenueMonth();
-  const queries = await readTrackedStocks();
+  const companyProfiles = await readCompanyProfiles();
+  const queries = await readTrackedStocks(companyProfiles);
   const stocks = [];
 
   for (const query of queries) {
     try {
-      const company = await resolveCompany(query);
+      const company = await resolveCompany(query, companyProfiles);
       const revenue = await fetchRevenueForStock(company, target);
-          stocks.push({
+
+      stocks.push({
         id: query,
         code: company.code,
         name: company.name,
+        legalName: company.legalName || "",
         marketTitle: company.marketTitle,
         lastCheckedAt: revenue.checkedAt,
         lastStatus: revenue.status,
@@ -434,6 +538,7 @@ async function buildSnapshot() {
         id: query,
         code: query,
         name: query,
+        legalName: "",
         marketTitle: "",
         lastCheckedAt: taipeiParts().isoLike,
         lastStatus: "error",
