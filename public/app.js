@@ -7,8 +7,7 @@ const pageStatus = document.querySelector("#pageStatus");
 const shareUrl = document.querySelector("#shareUrl");
 const announcement = document.querySelector("#announcement");
 const announcementTitle = document.querySelector("#announcementTitle");
-const updatedCount = document.querySelector("#updatedCount");
-const updatedNames = document.querySelector("#updatedNames");
+const dailyUpdates = document.querySelector("#dailyUpdates");
 const pendingCount = document.querySelector("#pendingCount");
 const pendingNames = document.querySelector("#pendingNames");
 
@@ -87,12 +86,21 @@ function renderAnnouncement(data) {
 
   announcement.hidden = false;
   announcementTitle.textContent = data.headline || "截止今日17:00";
-  updatedCount.textContent = data.newlyUpdatedCount || 0;
-  updatedNames.textContent = formatNameList(data.newlyUpdatedNames);
+  dailyUpdates.innerHTML = formatDailyUpdates(data.dailyUpdates);
   pendingCount.textContent = data.pendingCount || 0;
   pendingNames.textContent = formatNameList(data.pendingNames);
 }
 
+function formatDailyUpdates(updates) {
+  if (!Array.isArray(updates) || !updates.length) return "";
+
+  return updates.map(item => `
+    <p>
+      <strong>${escapeHtml(item.dateLabel)}新增公告 ${Number(item.count) || 0}家，如下：</strong>
+      <span>${escapeHtml(formatNameList(item.names))}</span>
+    </p>
+  `).join("");
+}
 function formatNameList(names) {
   return Array.isArray(names) && names.length ? names.join("、") : "無";
 }
