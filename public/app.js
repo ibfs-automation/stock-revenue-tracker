@@ -5,6 +5,12 @@ const refreshBtn = document.querySelector("#refreshBtn");
 const targetLabel = document.querySelector("#targetLabel");
 const pageStatus = document.querySelector("#pageStatus");
 const shareUrl = document.querySelector("#shareUrl");
+const announcement = document.querySelector("#announcement");
+const announcementTitle = document.querySelector("#announcementTitle");
+const updatedCount = document.querySelector("#updatedCount");
+const updatedNames = document.querySelector("#updatedNames");
+const pendingCount = document.querySelector("#pendingCount");
+const pendingNames = document.querySelector("#pendingNames");
 
 const formatter = new Intl.NumberFormat("zh-TW");
 
@@ -38,6 +44,7 @@ function render(snapshot) {
   pageStatus.textContent = snapshot.stocks.length ? `追蹤 ${snapshot.stocks.length} 檔` : "尚未加入股票";
   const networkUrl = snapshot.share && snapshot.share.networkUrls && snapshot.share.networkUrls[0];
   shareUrl.textContent = networkUrl || (snapshot.mode === "github-pages" ? "GitHub Pages" : "同機使用");
+    renderAnnouncement(snapshot.announcement);
 
   if (!snapshot.stocks.length) {
     rows.innerHTML = '<tr><td colspan="8" class="empty">尚未加入股票</td></tr>';
@@ -72,6 +79,23 @@ function render(snapshot) {
   }).join("");
 }
 
+function renderAnnouncement(data) {
+  if (!data) {
+    announcement.hidden = true;
+    return;
+  }
+
+  announcement.hidden = false;
+  announcementTitle.textContent = data.headline || "截止今日17:00";
+  updatedCount.textContent = data.newlyUpdatedCount || 0;
+  updatedNames.textContent = formatNameList(data.newlyUpdatedNames);
+  pendingCount.textContent = data.pendingCount || 0;
+  pendingNames.textContent = formatNameList(data.pendingNames);
+}
+
+function formatNameList(names) {
+  return Array.isArray(names) && names.length ? names.join("、") : "無";
+}
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
