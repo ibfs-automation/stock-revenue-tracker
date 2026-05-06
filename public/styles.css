@@ -270,3 +270,26 @@ tbody tr:last-child td {
     font-size: 26px;
   }
 }
+.announcement {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel);
+  line-height: 1.7;
+}
+
+.announcement h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.announcement p {
+  margin: 6px 0;
+}
+
+.announcement strong {
+  color: var(--accent-strong);
+}
