@@ -292,10 +292,10 @@ async function buildSnapshot() {
     try {
       const company = await resolveCompany(query);
       const revenue = await fetchRevenueForStock(company, target);
-      stocks.push({
+          stocks.push({
         id: query,
-        code: query,
-        name: query,
+        code: company.code,
+        name: company.name,
         marketTitle: company.marketTitle,
         lastCheckedAt: revenue.checkedAt,
         lastStatus: revenue.status,
@@ -305,8 +305,8 @@ async function buildSnapshot() {
     } catch (error) {
       stocks.push({
         id: query,
-        code: company.code,
-        name: company.name,
+        code: query,
+        name: query,
         marketTitle: "",
         lastCheckedAt: taipeiParts().isoLike,
         lastStatus: "error",
