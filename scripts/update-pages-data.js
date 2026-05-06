@@ -225,6 +225,18 @@ async function readFormOperations() {
 
   return parseCsv(await response.text());
 }
+async function stockListContains(stocks, code) {
+  for (const stock of stocks) {
+    try {
+      const company = await resolveCompany(stock);
+      if (company.code === code) return true;
+    } catch (error) {
+      if (stock === code) return true;
+    }
+  }
+
+  return false;
+}
 async function readTrackedStocks() {
   const raw = await fs.readFile(TRACKED_STOCKS_PATH, "utf8");
   const parsed = JSON.parse(raw);
@@ -238,13 +250,33 @@ async function readTrackedStocks() {
     const query = String(row["股票代號或簡稱"] || "").trim();
     if (!query) continue;
 
+    let resolvedCode = query;
+    try {
+      const company = await resolveCompany(query);
+      resolvedCode = company.code;
+    } catch (error) {
+      resolvedCode = query;
+    }
+
     if (action === "新增") {
-      if (!stocks.includes(query)) stocks.push(query);
+      const exists = await stockListContains(stocks, resolvedCode);
+      if (!exists) stocks.push(query);
     }
 
     if (action === "刪除") {
       for (let i = stocks.length - 1; i >= 0; i--) {
-        if (stocks[i] === query) stocks.splice(i, 1);
+        const current = stocks[i];
+        let currentCode = current;
+        try {
+          const company = await resolveCompany(current);
+          currentCode = company.code;
+        } catch (error) {
+          currentCode = current;
+        }
+
+        if (current === query || currentCode === resolvedCode) {
+          stocks.splice(i, 1);
+        }
       }
     }
   }
