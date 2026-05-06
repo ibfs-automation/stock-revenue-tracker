@@ -101,7 +101,7 @@ async function loadSnapshot() {
   try {
     return await requestJson("/api/stocks");
   } catch (error) {
-    return requestJson("/data/revenue.json");
+    return requestJson("./data/revenue.json");
   }
 }
 
