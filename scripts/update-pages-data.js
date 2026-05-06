@@ -295,14 +295,17 @@ async function readPreviousSnapshot() {
 }
 
 function displayName(stock) {
-  const trackedName = stock.id && !/^\d+$/.test(String(stock.id)) ? stock.id : "";
+  const id = String(stock.id || "");
+  const isCodeId = /^\d+$/.test(id);
+  const trackedName = id && !isCodeId ? id : "";
+  const code = stock.code || (isCodeId ? id : "");
+
   const name = (
-    (stock.revenue && stock.revenue.companyAbbreviation) ||
     trackedName ||
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
     stock.name ||
     ""
   );
-  const code = stock.code || (stock.id && /^\d+$/.test(String(stock.id)) ? stock.id : "");
 
   if (name && code && name !== code) return `${name}(${code})`;
   return name || code || "";
