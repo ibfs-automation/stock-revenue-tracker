@@ -211,23 +211,30 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     if (stock && stock.code) previousByCode.set(String(stock.code), stock);
   }
 
-  const newlyUpdated = stocks.filter(stock => {
-    if (stock.lastStatus !== "updated") return false;
-    const previous = previousByCode.get(String(stock.code));
-    return !previous ||
-      previous.lastStatus !== "updated" ||
-      !previous.revenue ||
-      previous.revenue.reportedYymm !== stock.revenue.reportedYymm;
-  });
-
-  const pending = stocks.filter(stock => stock.lastStatus !== "updated");
-  const now = taipeiParts();
-  const todayKey = `${now.month}/${now.day}`;
+  const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
   const previousDailyUpdates = previousSnapshot &&
     previousSnapshot.announcement &&
     Array.isArray(previousSnapshot.announcement.dailyUpdates)
     ? previousSnapshot.announcement.dailyUpdates
     : [];
+  const hasAnyDailyAnnouncement = previousDailyUpdates.some(item =>
+    Array.isArray(item.names) && item.names.length > 0
+  );
+
+  const newlyUpdated = hasAnyDailyAnnouncement
+    ? updatedStocks.filter(stock => {
+        const previous = previousByCode.get(String(stock.code));
+        return !previous ||
+          previous.lastStatus !== "updated" ||
+          !previous.revenue ||
+          previous.revenue.reportedYymm !== stock.revenue.reportedYymm;
+      })
+    : updatedStocks;
+
+  const pending = stocks.filter(stock => stock.lastStatus !== "updated");
+  const now = taipeiParts();
+  const todayKey = `${now.month}/${now.day}`;
+  const previousDailyUpdates = previousSnapshot &&
   const dailyByDate = new Map(previousDailyUpdates.map(item => [item.dateLabel, item]));
   const todayExisting = dailyByDate.get(todayKey);
   const todayNames = mergeUnique(
