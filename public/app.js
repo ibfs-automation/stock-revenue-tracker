@@ -59,7 +59,7 @@ function render(snapshot) {
       <tr>
         <td>
           <div class="stock-name">
-            <strong>${escapeHtml(stock.code)} ${escapeHtml(revenue.companyAbbreviation || stock.name)}</strong>
+            <strong>${escapeHtml(stockDisplayName(stock))}</strong>
             <span>${escapeHtml(revenue.marketKindName || stock.marketTitle || "")}</span>
           </div>
         </td>
@@ -78,6 +78,15 @@ function render(snapshot) {
   }).join("");
 }
 
+function stockDisplayName(stock) {
+  const revenue = stock.revenue || {};
+  const trackedName = stock.id && !/^\d+$/.test(String(stock.id)) ? stock.id : "";
+  const name = revenue.companyAbbreviation || trackedName || stock.name || "";
+  const code = stock.code || (stock.id && /^\d+$/.test(String(stock.id)) ? stock.id : "");
+
+  if (name && code && name !== code) return `${name}(${code})`;
+  return name || code || "";
+}
 function renderAnnouncement(data) {
   if (!data) {
     announcement.hidden = true;
