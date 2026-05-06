@@ -192,13 +192,16 @@ async function readPreviousSnapshot() {
 }
 
 function displayName(stock) {
-  return (
+  const name = (
     (stock.revenue && stock.revenue.companyAbbreviation) ||
     stock.name ||
-    stock.code ||
     stock.id ||
     ""
   );
+  const code = stock.code || stock.id || "";
+
+  if (name && code && name !== code) return `${name}(${code})`;
+  return name || code || "";
 }
 
 function mergeUnique(left, right) {
