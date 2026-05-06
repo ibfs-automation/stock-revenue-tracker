@@ -201,6 +201,10 @@ function displayName(stock) {
   );
 }
 
+function mergeUnique(left, right) {
+  return [...new Set([...(left || []), ...(right || [])].filter(Boolean))];
+}
+
 function buildAnnouncement(stocks, target, previousSnapshot) {
   const previousByCode = new Map();
   for (const stock of previousSnapshot && Array.isArray(previousSnapshot.stocks) ? previousSnapshot.stocks : []) {
@@ -217,12 +221,42 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   });
 
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
+  const now = taipeiParts();
+  const todayKey = `${now.month}/${now.day}`;
+  const previousDailyUpdates = previousSnapshot &&
+    previousSnapshot.announcement &&
+    Array.isArray(previousSnapshot.announcement.dailyUpdates)
+    ? previousSnapshot.announcement.dailyUpdates
+    : [];
+  const dailyByDate = new Map(previousDailyUpdates.map(item => [item.dateLabel, item]));
+  const todayExisting = dailyByDate.get(todayKey);
+  const todayNames = mergeUnique(
+    todayExisting && todayExisting.names,
+    newlyUpdated.map(displayName)
+  );
+
+  dailyByDate.set(todayKey, {
+    dateLabel: todayKey,
+    count: todayNames.length,
+    names: todayNames
+  });
+
+  const dailyUpdates = Array.from({ length: 11 }, (_, index) => {
+    const dateLabel = `${now.month}/${index + 1}`;
+    const item = dailyByDate.get(dateLabel);
+    return item || {
+      dateLabel,
+      count: 0,
+      names: []
+    };
+  });
 
   return {
-    generatedAt: taipeiParts().isoLike,
+    generatedAt: now.isoLike,
     headline: `截止今日17:00 ${target.month}月月營收`,
     newlyUpdatedCount: newlyUpdated.length,
     newlyUpdatedNames: newlyUpdated.map(displayName).filter(Boolean),
+    dailyUpdates,
     pendingCount: pending.length,
     pendingNames: pending.map(displayName).filter(Boolean)
   };
