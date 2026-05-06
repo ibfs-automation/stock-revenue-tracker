@@ -205,65 +205,44 @@ function mergeUnique(left, right) {
   return [...new Set([...(left || []), ...(right || [])].filter(Boolean))];
 }
 
+function officialDateLabel(stock) {
+  const value = stock && stock.revenue && stock.revenue.officialDatetime;
+  const match = String(value || "").match(/^\d{2,3}\/(\d{2})\/(\d{2})/);
+  if (!match) return null;
+
+  return `${Number(match[1])}/${Number(match[2])}`;
+}
+
 function buildAnnouncement(stocks, target, previousSnapshot) {
-  const previousByCode = new Map();
-  for (const stock of previousSnapshot && Array.isArray(previousSnapshot.stocks) ? previousSnapshot.stocks : []) {
-    if (stock && stock.code) previousByCode.set(String(stock.code), stock);
-  }
-
-  const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
-  const previousDailyUpdates = previousSnapshot &&
-    previousSnapshot.announcement &&
-    Array.isArray(previousSnapshot.announcement.dailyUpdates)
-    ? previousSnapshot.announcement.dailyUpdates
-    : [];
-
-  const hasAnyDailyAnnouncement = previousDailyUpdates.some(item =>
-    Array.isArray(item.names) && item.names.length > 0
-  );
-
-  const newlyUpdated = hasAnyDailyAnnouncement
-    ? updatedStocks.filter(stock => {
-        const previous = previousByCode.get(String(stock.code));
-        return !previous ||
-          previous.lastStatus !== "updated" ||
-          !previous.revenue ||
-          previous.revenue.reportedYymm !== stock.revenue.reportedYymm;
-      })
-    : updatedStocks;
-
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
-  const now = taipeiParts();
-  const todayKey = `${now.month}/${now.day}`;
+  const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
 
-  const dailyByDate = new Map(previousDailyUpdates.map(item => [item.dateLabel, item]));
-  const todayExisting = dailyByDate.get(todayKey);
-  const todayNames = mergeUnique(
-    todayExisting && todayExisting.names,
-    newlyUpdated.map(displayName)
-  );
+  const dailyByDate = new Map();
 
-  dailyByDate.set(todayKey, {
-    dateLabel: todayKey,
-    count: todayNames.length,
-    names: todayNames
-  });
-
-  const dailyUpdates = Array.from({ length: 11 }, (_, index) => {
-    const dateLabel = `${now.month}/${index + 1}`;
-    const item = dailyByDate.get(dateLabel);
-    return item || {
-      dateLabel,
+  for (let day = 1; day <= 11; day++) {
+    dailyByDate.set(`${target.month + 1}/${day}`, {
+      dateLabel: `${target.month + 1}/${day}`,
       count: 0,
       names: []
-    };
-  });
+    });
+  }
+
+  for (const stock of updatedStocks) {
+    const dateLabel = officialDateLabel(stock);
+    if (!dateLabel || !dailyByDate.has(dateLabel)) continue;
+
+    const item = dailyByDate.get(dateLabel);
+    item.names = mergeUnique(item.names, [displayName(stock)]);
+    item.count = item.names.length;
+  }
+
+  const dailyUpdates = Array.from(dailyByDate.values());
 
   return {
-    generatedAt: now.isoLike,
+    generatedAt: taipeiParts().isoLike,
     headline: `截止今日17:00 ${target.month}月月營收`,
-    newlyUpdatedCount: newlyUpdated.length,
-    newlyUpdatedNames: newlyUpdated.map(displayName).filter(Boolean),
+    newlyUpdatedCount: updatedStocks.length,
+    newlyUpdatedNames: updatedStocks.map(displayName).filter(Boolean),
     dailyUpdates,
     pendingCount: pending.length,
     pendingNames: pending.map(displayName).filter(Boolean)
