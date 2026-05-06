@@ -192,13 +192,14 @@ async function readPreviousSnapshot() {
 }
 
 function displayName(stock) {
+  const trackedName = stock.id && !/^\d+$/.test(String(stock.id)) ? stock.id : "";
   const name = (
     (stock.revenue && stock.revenue.companyAbbreviation) ||
-    stock.id ||
+    trackedName ||
     stock.name ||
     ""
   );
-  const code = stock.code || "";
+  const code = stock.code || (stock.id && /^\d+$/.test(String(stock.id)) ? stock.id : "");
 
   if (name && code && name !== code) return `${name}(${code})`;
   return name || code || "";
@@ -292,9 +293,9 @@ async function buildSnapshot() {
       const company = await resolveCompany(query);
       const revenue = await fetchRevenueForStock(company, target);
       stocks.push({
-        id: company.code,
-        code: company.code,
-        name: company.name,
+        id: query,
+        code: query,
+        name: query,
         marketTitle: company.marketTitle,
         lastCheckedAt: revenue.checkedAt,
         lastStatus: revenue.status,
