@@ -214,33 +214,62 @@ function officialDateLabel(stock) {
 }
 
 function buildAnnouncement(stocks, target, previousSnapshot) {
+  const previousByCode = new Map();
+  for (const stock of previousSnapshot && Array.isArray(previousSnapshot.stocks) ? previousSnapshot.stocks : []) {
+    if (stock && stock.code) previousByCode.set(String(stock.code), stock);
+  }
+
+  const now = taipeiParts();
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
   const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
+  const previousDailyUpdates = previousSnapshot &&
+    previousSnapshot.announcement &&
+    Array.isArray(previousSnapshot.announcement.dailyUpdates)
+    ? previousSnapshot.announcement.dailyUpdates
+    : [];
 
   const dailyByDate = new Map();
 
   for (let day = 1; day <= 11; day++) {
-    dailyByDate.set(`${target.month + 1}/${day}`, {
-      dateLabel: `${target.month + 1}/${day}`,
+    const dateLabel = `${now.month}/${day}`;
+    const previous = previousDailyUpdates.find(item => item.dateLabel === dateLabel);
+    dailyByDate.set(dateLabel, {
+      dateLabel,
+      count: previous && Array.isArray(previous.names) ? previous.names.length : 0,
+      names: previous && Array.isArray(previous.names) ? previous.names : []
+    });
+  }
+
+  const todayKey = `${now.month}/${now.day}`;
+  const canRecordToday = now.day >= 1 && now.day <= 11 && now.hour >= 17;
+
+  if (!canRecordToday && dailyByDate.has(todayKey)) {
+    dailyByDate.set(todayKey, {
+      dateLabel: todayKey,
       count: 0,
       names: []
     });
   }
 
-  for (const stock of updatedStocks) {
-    const dateLabel = officialDateLabel(stock);
-    if (!dateLabel || !dailyByDate.has(dateLabel)) continue;
+  if (canRecordToday && dailyByDate.has(todayKey)) {
+    const newlyUpdated = updatedStocks.filter(stock => {
+      const previous = previousByCode.get(String(stock.code));
+      return !previous ||
+        previous.lastStatus !== "updated" ||
+        !previous.revenue ||
+        previous.revenue.reportedYymm !== stock.revenue.reportedYymm;
+    });
 
-    const item = dailyByDate.get(dateLabel);
-    item.names = mergeUnique(item.names, [displayName(stock)]);
-    item.count = item.names.length;
+    const today = dailyByDate.get(todayKey);
+    today.names = mergeUnique(today.names, newlyUpdated.map(displayName));
+    today.count = today.names.length;
   }
 
   const dailyUpdates = Array.from(dailyByDate.values());
 
   return {
-    generatedAt: taipeiParts().isoLike,
-    headline: `截止今日17:00 ${target.month}月月營收`,
+    generatedAt: now.isoLike,
+    headline: `${canRecordToday ? "截止今日17:00" : "尚未到今日17:00"} ${target.month}月月營收`,
     newlyUpdatedCount: updatedStocks.length,
     newlyUpdatedNames: updatedStocks.map(displayName).filter(Boolean),
     dailyUpdates,
