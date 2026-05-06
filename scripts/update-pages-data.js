@@ -217,6 +217,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     Array.isArray(previousSnapshot.announcement.dailyUpdates)
     ? previousSnapshot.announcement.dailyUpdates
     : [];
+
   const hasAnyDailyAnnouncement = previousDailyUpdates.some(item =>
     Array.isArray(item.names) && item.names.length > 0
   );
@@ -234,7 +235,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
   const now = taipeiParts();
   const todayKey = `${now.month}/${now.day}`;
-  const previousDailyUpdates = previousSnapshot &&
+
   const dailyByDate = new Map(previousDailyUpdates.map(item => [item.dateLabel, item]));
   const todayExisting = dailyByDate.get(todayKey);
   const todayNames = mergeUnique(
