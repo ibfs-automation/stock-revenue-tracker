@@ -17,10 +17,6 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
   update-and-deploy:
     runs-on: ubuntu-latest
