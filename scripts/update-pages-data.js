@@ -194,11 +194,11 @@ async function readPreviousSnapshot() {
 function displayName(stock) {
   const name = (
     (stock.revenue && stock.revenue.companyAbbreviation) ||
-    stock.name ||
     stock.id ||
+    stock.name ||
     ""
   );
-  const code = stock.code || stock.id || "";
+  const code = stock.code || "";
 
   if (name && code && name !== code) return `${name}(${code})`;
   return name || code || "";
@@ -304,8 +304,8 @@ async function buildSnapshot() {
     } catch (error) {
       stocks.push({
         id: query,
-        code: query,
-        name: query,
+        code: company.code,
+        name: company.name,
         marketTitle: "",
         lastCheckedAt: taipeiParts().isoLike,
         lastStatus: "error",
