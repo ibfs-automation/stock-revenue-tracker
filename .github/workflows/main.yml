@@ -2,8 +2,9 @@ name: Update revenue data and publish Pages
 
 on:
   workflow_dispatch:
-  schedule:
-  - cron: "0,20,40 9 1-11 * *"
+   schedule:
+    - cron: "40,50 8 1-11 * *"
+    - cron: "0 9 1-11 * *"
   push:
     branches:
       - main
