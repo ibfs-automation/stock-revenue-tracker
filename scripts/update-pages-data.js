@@ -15,6 +15,36 @@ const COMPANY_PROFILE_URLS = [
   "https://mopsfin.twse.com.tw/opendata/t187ap03_O.csv",
   "https://mopsfin.twse.com.tw/opendata/t187ap03_R.csv"
 ];
+const MANUAL_BASELINES = {
+  "11504": {
+    baselineUpdatedCodes: ["3675", "8098", "1560", "3305", "9958", "6672", "4441"],
+    dailyUpdates: [
+      { dateLabel: "5/1", count: 0, names: [] },
+      { dateLabel: "5/2", count: 0, names: [] },
+      { dateLabel: "5/3", count: 0, names: [] },
+      { dateLabel: "5/4", count: 0, names: [] },
+      { dateLabel: "5/5", count: 0, names: [] },
+      {
+        dateLabel: "5/6",
+        count: 7,
+        names: [
+          "德微(3675)",
+          "慶康科技(8098)",
+          "中砂(1560)",
+          "昇貿(3305)",
+          "世紀鋼(9958)",
+          "騰輝電子-KY(6672)",
+          "振大環球(4441)"
+        ]
+      },
+      { dateLabel: "5/7", count: 0, names: [] },
+      { dateLabel: "5/8", count: 0, names: [] },
+      { dateLabel: "5/9", count: 0, names: [] },
+      { dateLabel: "5/10", count: 0, names: [] },
+      { dateLabel: "5/11", count: 0, names: [] }
+    ]
+  }
+};
 
 function taipeiParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -430,19 +460,26 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     previousSnapshot.target &&
     previousSnapshot.target.yymm === target.yymm;
 
-  const previousDailyUpdates = sameTargetMonth &&
+  const manualBaseline = MANUAL_BASELINES[target.yymm] || null;
+  const previousHasBaseline = sameTargetMonth &&
+    Array.isArray(previousAnnouncement.baselineUpdatedCodes);
+
+  const previousDailyUpdates = previousHasBaseline &&
     Array.isArray(previousAnnouncement.dailyUpdates)
     ? previousAnnouncement.dailyUpdates
-    : [];
+    : manualBaseline
+      ? manualBaseline.dailyUpdates
+      : [];
 
   let previousBaselineCodes;
 
-  if (
-    sameTargetMonth &&
-    Array.isArray(previousAnnouncement.baselineUpdatedCodes)
-  ) {
+  if (previousHasBaseline) {
     previousBaselineCodes = new Set(
       previousAnnouncement.baselineUpdatedCodes.map(String)
+    );
+  } else if (manualBaseline) {
+    previousBaselineCodes = new Set(
+      manualBaseline.baselineUpdatedCodes.map(String)
     );
   } else if (sameTargetMonth && Array.isArray(previousSnapshot.stocks)) {
     previousBaselineCodes = new Set(
