@@ -464,22 +464,21 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   const previousHasBaseline = sameTargetMonth &&
     Array.isArray(previousAnnouncement.baselineUpdatedCodes);
 
-  const previousDailyUpdates = previousHasBaseline &&
-    Array.isArray(previousAnnouncement.dailyUpdates)
-    ? previousAnnouncement.dailyUpdates
-    : manualBaseline
-      ? manualBaseline.dailyUpdates
+  const previousDailyUpdates = manualBaseline
+    ? manualBaseline.dailyUpdates
+    : previousHasBaseline && Array.isArray(previousAnnouncement.dailyUpdates)
+      ? previousAnnouncement.dailyUpdates
       : [];
 
   let previousBaselineCodes;
 
-  if (previousHasBaseline) {
-    previousBaselineCodes = new Set(
-      previousAnnouncement.baselineUpdatedCodes.map(String)
-    );
-  } else if (manualBaseline) {
+  if (manualBaseline) {
     previousBaselineCodes = new Set(
       manualBaseline.baselineUpdatedCodes.map(String)
+    );
+  } else if (previousHasBaseline) {
+    previousBaselineCodes = new Set(
+      previousAnnouncement.baselineUpdatedCodes.map(String)
     );
   } else if (sameTargetMonth && Array.isArray(previousSnapshot.stocks)) {
     previousBaselineCodes = new Set(
