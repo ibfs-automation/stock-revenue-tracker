@@ -4,33 +4,10 @@
     {
       "id": "友威科",
       "code": "3580",
-      "name": "友威科",
-      "legalName": "友威科技股份有限公司",
-      "marketTitle": "31",
-      "lastCheckedAt": "2026-05-07T17:36:53+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
-      "revenue": {
-        "sourceName": "公開資訊觀測站",
-        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
-        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
-        "targetYymm": "11504",
-        "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:53+08:00",
-        "officialDatetime": "115/05/07 17:36:52",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
-      }
-    },
-    {
-      "id": "德微",
-      "code": "3675",
-      "name": "德微",
-      "legalName": "德微科技股份有限公司",
-      "marketTitle": "24",
-      "lastCheckedAt": "2026-05-07T17:36:54+08:00",
+      "name": "友威科技股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃其他電子業",
+      "lastCheckedAt": "2026-05-08T21:00:57+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -39,14 +16,87 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:54+08:00",
-        "officialDatetime": "115/05/07 17:36:54",
+        "checkedAt": "2026-05-08T21:00:57+08:00",
+        "officialDatetime": "115/05/08 21:00:57",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
         "reportedYymm": "11504",
-        "companyAbbreviation": "德微",
-        "marketKindName": "24",
+        "companyAbbreviation": "友威科技股份有限公司",
+        "marketKindName": "上櫃其他電子業",
+        "values": {
+          "本月": "47,451",
+          "去年同期": "27,708",
+          "增減金額": "-7,331",
+          "增減百分比": "-6.15",
+          "本年累計": "111,810",
+          "去年累計": "119,141",
+          "備註/營收變化原因說明": "主係本月濺鍍設備收入較去年同期增加所致"
+        },
+        "rawData": [
+          [
+            "本月",
+            "47,451"
+          ],
+          [
+            "去年同期",
+            "27,708"
+          ],
+          [
+            "增減金額",
+            "19,743"
+          ],
+          [
+            "增減百分比",
+            "71.25"
+          ],
+          [
+            "本年累計",
+            "111,810"
+          ],
+          [
+            "去年累計",
+            "119,141"
+          ],
+          [
+            "增減金額",
+            "-7,331"
+          ],
+          [
+            "增減百分比",
+            "-6.15"
+          ],
+          [
+            "備註/營收變化原因說明",
+            "主係本月濺鍍設備收入較去年同期增加所致"
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
+      }
+    },
+    {
+      "id": "德微",
+      "code": "3675",
+      "name": "德微科技股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃半導體業",
+      "lastCheckedAt": "2026-05-08T21:00:58+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
+      "revenue": {
+        "sourceName": "公開資訊觀測站",
+        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
+        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
+        "targetYymm": "11504",
+        "targetLabel": "2026 年 4 月",
+        "checkedAt": "2026-05-08T21:00:58+08:00",
+        "officialDatetime": "115/05/08 21:00:57",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "德微科技股份有限公司",
+        "marketKindName": "上櫃半導體業",
         "values": {
           "本月": "253,869",
           "去年同期": "213,157",
@@ -103,53 +153,7 @@
       "name": "樺漢",
       "legalName": "樺漢科技股份有限公司",
       "marketTitle": "25",
-      "lastCheckedAt": "2026-05-07T17:36:54+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
-      "revenue": {
-        "sourceName": "公開資訊觀測站",
-        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
-        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
-        "targetYymm": "11504",
-        "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:54+08:00",
-        "officialDatetime": "115/05/07 17:36:54",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
-      }
-    },
-    {
-      "id": "瑞祺電通",
-      "code": "6416",
-      "name": "瑞祺電通",
-      "legalName": "瑞祺電通股份有限公司",
-      "marketTitle": "27",
-      "lastCheckedAt": "2026-05-07T17:36:55+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
-      "revenue": {
-        "sourceName": "公開資訊觀測站",
-        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
-        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
-        "targetYymm": "11504",
-        "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:55+08:00",
-        "officialDatetime": "115/05/07 17:36:54",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
-      }
-    },
-    {
-      "id": "昇貿",
-      "code": "3305",
-      "name": "昇貿",
-      "legalName": "昇貿科技股份有限公司",
-      "marketTitle": "31",
-      "lastCheckedAt": "2026-05-07T17:36:55+08:00",
+      "lastCheckedAt": "2026-05-08T21:00:58+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -158,8 +162,154 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:55+08:00",
-        "officialDatetime": "115/05/07 17:36:55",
+        "checkedAt": "2026-05-08T21:00:58+08:00",
+        "officialDatetime": "115/05/08 21:00:58",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "樺漢",
+        "marketKindName": "25",
+        "values": {
+          "本月": "14,563,934",
+          "去年同期": "11,924,179",
+          "增減金額": "5,662,691",
+          "增減百分比": "12.21",
+          "本年累計": "52,052,779",
+          "去年累計": "46,390,088",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "14,563,934"
+          ],
+          [
+            "去年同期",
+            "11,924,179"
+          ],
+          [
+            "增減金額",
+            "2,639,755"
+          ],
+          [
+            "增減百分比",
+            "22.14"
+          ],
+          [
+            "本年累計",
+            "52,052,779"
+          ],
+          [
+            "去年累計",
+            "46,390,088"
+          ],
+          [
+            "增減金額",
+            "5,662,691"
+          ],
+          [
+            "增減百分比",
+            "12.21"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
+      }
+    },
+    {
+      "id": "瑞祺電通",
+      "code": "6416",
+      "name": "瑞祺電通",
+      "legalName": "瑞祺電通股份有限公司",
+      "marketTitle": "27",
+      "lastCheckedAt": "2026-05-08T21:00:58+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
+      "revenue": {
+        "sourceName": "公開資訊觀測站",
+        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
+        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
+        "targetYymm": "11504",
+        "targetLabel": "2026 年 4 月",
+        "checkedAt": "2026-05-08T21:00:58+08:00",
+        "officialDatetime": "115/05/08 21:00:58",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "瑞祺電通",
+        "marketKindName": "27",
+        "values": {
+          "本月": "315,305",
+          "去年同期": "340,072",
+          "增減金額": "-75,932",
+          "增減百分比": "-5.24",
+          "本年累計": "1,373,037",
+          "去年累計": "1,448,969",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "315,305"
+          ],
+          [
+            "去年同期",
+            "340,072"
+          ],
+          [
+            "增減金額",
+            "-24,767"
+          ],
+          [
+            "增減百分比",
+            "-7.28"
+          ],
+          [
+            "本年累計",
+            "1,373,037"
+          ],
+          [
+            "去年累計",
+            "1,448,969"
+          ],
+          [
+            "增減金額",
+            "-75,932"
+          ],
+          [
+            "增減百分比",
+            "-5.24"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
+      }
+    },
+    {
+      "id": "昇貿",
+      "code": "3305",
+      "name": "昇貿",
+      "legalName": "昇貿科技股份有限公司",
+      "marketTitle": "31",
+      "lastCheckedAt": "2026-05-08T21:00:58+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
+      "revenue": {
+        "sourceName": "公開資訊觀測站",
+        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
+        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
+        "targetYymm": "11504",
+        "targetLabel": "2026 年 4 月",
+        "checkedAt": "2026-05-08T21:00:58+08:00",
+        "officialDatetime": "115/05/08 21:00:58",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -222,7 +372,7 @@
       "name": "慶康科技",
       "legalName": "慶康科技股份有限公司",
       "marketTitle": "24",
-      "lastCheckedAt": "2026-05-07T17:36:55+08:00",
+      "lastCheckedAt": "2026-05-08T21:00:58+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -231,8 +381,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:55+08:00",
-        "officialDatetime": "115/05/07 17:36:55",
+        "checkedAt": "2026-05-08T21:00:58+08:00",
+        "officialDatetime": "115/05/08 21:00:58",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -295,7 +445,7 @@
       "name": "世紀鋼",
       "legalName": "世紀鋼鐵結構股份有限公司",
       "marketTitle": "10",
-      "lastCheckedAt": "2026-05-07T17:36:55+08:00",
+      "lastCheckedAt": "2026-05-08T21:00:59+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -304,8 +454,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:55+08:00",
-        "officialDatetime": "115/05/07 17:36:55",
+        "checkedAt": "2026-05-08T21:00:59+08:00",
+        "officialDatetime": "115/05/08 21:00:59",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -368,7 +518,7 @@
       "name": "騰輝電子-KY",
       "legalName": "騰輝電子國際集團股份有限公司",
       "marketTitle": "28",
-      "lastCheckedAt": "2026-05-07T17:36:56+08:00",
+      "lastCheckedAt": "2026-05-08T21:00:59+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -377,8 +527,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:56+08:00",
-        "officialDatetime": "115/05/07 17:36:55",
+        "checkedAt": "2026-05-08T21:00:59+08:00",
+        "officialDatetime": "115/05/08 21:00:59",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -462,7 +612,7 @@
       "name": "中砂",
       "legalName": "中國砂輪企業股份有限公司",
       "marketTitle": "05",
-      "lastCheckedAt": "2026-05-07T17:36:56+08:00",
+      "lastCheckedAt": "2026-05-08T21:00:59+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -471,8 +621,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:56+08:00",
-        "officialDatetime": "115/05/07 17:36:56",
+        "checkedAt": "2026-05-08T21:00:59+08:00",
+        "officialDatetime": "115/05/08 21:00:59",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -535,76 +685,226 @@
       "name": "耀登",
       "legalName": "耀登科技股份有限公司",
       "marketTitle": "27",
-      "lastCheckedAt": "2026-05-07T17:36:56+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:00:59+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:56+08:00",
-        "officialDatetime": "115/05/07 17:36:56",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:00:59+08:00",
+        "officialDatetime": "115/05/08 21:00:59",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "耀登",
+        "marketKindName": "27",
+        "values": {
+          "本月": "169,789",
+          "去年同期": "145,634",
+          "增減金額": "95,947",
+          "增減百分比": "20.47",
+          "本年累計": "564,567",
+          "去年累計": "468,620",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "169,789"
+          ],
+          [
+            "去年同期",
+            "145,634"
+          ],
+          [
+            "增減金額",
+            "24,155"
+          ],
+          [
+            "增減百分比",
+            "16.59"
+          ],
+          [
+            "本年累計",
+            "564,567"
+          ],
+          [
+            "去年累計",
+            "468,620"
+          ],
+          [
+            "增減金額",
+            "95,947"
+          ],
+          [
+            "增減百分比",
+            "20.47"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
       "id": "晶呈科技",
       "code": "4768",
-      "name": "晶呈科技",
-      "legalName": "晶呈科技股份有限公司",
-      "marketTitle": "21",
-      "lastCheckedAt": "2026-05-07T17:36:56+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "name": "晶呈科技股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃化學工業",
+      "lastCheckedAt": "2026-05-08T21:01:00+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:56+08:00",
-        "officialDatetime": "115/05/07 17:36:56",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:00+08:00",
+        "officialDatetime": "115/05/08 21:01:00",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "晶呈科技股份有限公司",
+        "marketKindName": "上櫃化學工業",
+        "values": {
+          "本月": "173,680",
+          "去年同期": "59,575",
+          "增減金額": "384,078",
+          "增減百分比": "166.38",
+          "本年累計": "614,925",
+          "去年累計": "230,847",
+          "備註/營收變化原因說明": "本月營收較去年同期增加乃因客戶需求增加"
+        },
+        "rawData": [
+          [
+            "本月",
+            "173,680"
+          ],
+          [
+            "去年同期",
+            "59,575"
+          ],
+          [
+            "增減金額",
+            "114,105"
+          ],
+          [
+            "增減百分比",
+            "191.53"
+          ],
+          [
+            "本年累計",
+            "614,925"
+          ],
+          [
+            "去年累計",
+            "230,847"
+          ],
+          [
+            "增減金額",
+            "384,078"
+          ],
+          [
+            "增減百分比",
+            "166.38"
+          ],
+          [
+            "備註/營收變化原因說明",
+            "本月營收較去年同期增加乃因客戶需求增加"
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
       "id": "聖暉*",
       "code": "5536",
-      "name": "聖暉*",
-      "legalName": "聖暉工程科技股份有限公司",
-      "marketTitle": "31",
-      "lastCheckedAt": "2026-05-07T17:36:57+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "name": "聖暉工程科技股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃其他電子業",
+      "lastCheckedAt": "2026-05-08T21:01:00+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:57+08:00",
-        "officialDatetime": "115/05/07 17:36:57",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:00+08:00",
+        "officialDatetime": "115/05/08 21:01:00",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "聖暉工程科技股份有限公司",
+        "marketKindName": "上櫃其他電子業",
+        "values": {
+          "本月": "4,088,049",
+          "去年同期": "3,549,566",
+          "增減金額": "3,585,642",
+          "增減百分比": "29.62",
+          "本年累計": "15,691,231",
+          "去年累計": "12,105,589",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "4,088,049"
+          ],
+          [
+            "去年同期",
+            "3,549,566"
+          ],
+          [
+            "增減金額",
+            "538,483"
+          ],
+          [
+            "增減百分比",
+            "15.17"
+          ],
+          [
+            "本年累計",
+            "15,691,231"
+          ],
+          [
+            "去年累計",
+            "12,105,589"
+          ],
+          [
+            "增減金額",
+            "3,585,642"
+          ],
+          [
+            "增減百分比",
+            "29.62"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
       "id": "桓鼎-KY",
       "code": "5543",
-      "name": "桓鼎-KY",
-      "legalName": "桓鼎股份有限公司",
-      "marketTitle": "14",
-      "lastCheckedAt": "2026-05-07T17:36:57+08:00",
+      "name": "桓鼎股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃建材營造",
+      "lastCheckedAt": "2026-05-08T21:01:01+08:00",
       "lastStatus": "pending",
       "lastMessage": "查無相符資料",
       "revenue": {
@@ -613,8 +913,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:57+08:00",
-        "officialDatetime": "115/05/07 17:36:57",
+        "checkedAt": "2026-05-08T21:01:01+08:00",
+        "officialDatetime": "115/05/08 21:01:01",
         "message": "查無相符資料",
         "status": "pending",
         "verified": false,
@@ -624,24 +924,74 @@
     {
       "id": "朋億*",
       "code": "6613",
-      "name": "朋億*",
-      "legalName": "朋億股份有限公司",
-      "marketTitle": "31",
-      "lastCheckedAt": "2026-05-07T17:36:57+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "name": "朋億股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃其他電子業",
+      "lastCheckedAt": "2026-05-08T21:01:01+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:57+08:00",
-        "officialDatetime": "115/05/07 17:36:57",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:01+08:00",
+        "officialDatetime": "115/05/08 21:01:01",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "朋億股份有限公司",
+        "marketKindName": "上櫃其他電子業",
+        "values": {
+          "本月": "711,107",
+          "去年同期": "543,584",
+          "增減金額": "359,893",
+          "增減百分比": "13.36",
+          "本年累計": "3,052,774",
+          "去年累計": "2,692,881",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "711,107"
+          ],
+          [
+            "去年同期",
+            "543,584"
+          ],
+          [
+            "增減金額",
+            "167,523"
+          ],
+          [
+            "增減百分比",
+            "30.82"
+          ],
+          [
+            "本年累計",
+            "3,052,774"
+          ],
+          [
+            "去年累計",
+            "2,692,881"
+          ],
+          [
+            "增減金額",
+            "359,893"
+          ],
+          [
+            "增減百分比",
+            "13.36"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -650,7 +1000,7 @@
       "name": "聯純",
       "legalName": "聯純科技股份有限公司",
       "marketTitle": "35",
-      "lastCheckedAt": "2026-05-07T17:36:57+08:00",
+      "lastCheckedAt": "2026-05-08T21:01:02+08:00",
       "lastStatus": "pending",
       "lastMessage": "查無相符資料",
       "revenue": {
@@ -659,8 +1009,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:57+08:00",
-        "officialDatetime": "115/05/07 17:36:57",
+        "checkedAt": "2026-05-08T21:01:02+08:00",
+        "officialDatetime": "115/05/08 21:01:02",
         "message": "查無相符資料",
         "status": "pending",
         "verified": false,
@@ -673,21 +1023,71 @@
       "name": "藍新資訊",
       "legalName": "藍新資訊股份有限公司",
       "marketTitle": "30",
-      "lastCheckedAt": "2026-05-07T17:36:58+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:02+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:58+08:00",
-        "officialDatetime": "115/05/07 17:36:58",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:02+08:00",
+        "officialDatetime": "115/05/08 21:01:02",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "藍新資訊",
+        "marketKindName": "30",
+        "values": {
+          "本月": "48,767",
+          "去年同期": "46,870",
+          "增減金額": "22,723",
+          "增減百分比": "13.29",
+          "本年累計": "193,702",
+          "去年累計": "170,979",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "48,767"
+          ],
+          [
+            "去年同期",
+            "46,870"
+          ],
+          [
+            "增減金額",
+            "1,897"
+          ],
+          [
+            "增減百分比",
+            "4.05"
+          ],
+          [
+            "本年累計",
+            "193,702"
+          ],
+          [
+            "去年累計",
+            "170,979"
+          ],
+          [
+            "增減金額",
+            "22,723"
+          ],
+          [
+            "增減百分比",
+            "13.29"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -696,7 +1096,7 @@
       "name": "華勝-KY",
       "legalName": "華勝汽車電子股份有限公司",
       "marketTitle": "12",
-      "lastCheckedAt": "2026-05-07T17:36:58+08:00",
+      "lastCheckedAt": "2026-05-08T21:01:02+08:00",
       "lastStatus": "pending",
       "lastMessage": "查無相符資料",
       "revenue": {
@@ -705,8 +1105,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:58+08:00",
-        "officialDatetime": "115/05/07 17:36:58",
+        "checkedAt": "2026-05-08T21:01:02+08:00",
+        "officialDatetime": "115/05/08 21:01:02",
         "message": "查無相符資料",
         "status": "pending",
         "verified": false,
@@ -719,7 +1119,7 @@
       "name": "樺緯物聯",
       "legalName": "樺緯物聯股份有限公司",
       "marketTitle": "25",
-      "lastCheckedAt": "2026-05-07T17:36:58+08:00",
+      "lastCheckedAt": "2026-05-08T21:01:02+08:00",
       "lastStatus": "pending",
       "lastMessage": "查無相符資料",
       "revenue": {
@@ -728,8 +1128,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:58+08:00",
-        "officialDatetime": "115/05/07 17:36:58",
+        "checkedAt": "2026-05-08T21:01:02+08:00",
+        "officialDatetime": "115/05/08 21:01:02",
         "message": "查無相符資料",
         "status": "pending",
         "verified": false,
@@ -742,21 +1142,71 @@
       "name": "達運光電",
       "legalName": "達運光電股份有限公司",
       "marketTitle": "27",
-      "lastCheckedAt": "2026-05-07T17:36:58+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:03+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:58+08:00",
-        "officialDatetime": "115/05/07 17:36:58",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:03+08:00",
+        "officialDatetime": "115/05/08 21:01:02",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "達運光電",
+        "marketKindName": "27",
+        "values": {
+          "本月": "234,095",
+          "去年同期": "119,472",
+          "增減金額": "258,577",
+          "增減百分比": "60.09",
+          "本年累計": "688,909",
+          "去年累計": "430,332",
+          "備註/營收變化原因說明": "產品品項增換"
+        },
+        "rawData": [
+          [
+            "本月",
+            "234,095"
+          ],
+          [
+            "去年同期",
+            "119,472"
+          ],
+          [
+            "增減金額",
+            "114,623"
+          ],
+          [
+            "增減百分比",
+            "95.94"
+          ],
+          [
+            "本年累計",
+            "688,909"
+          ],
+          [
+            "去年累計",
+            "430,332"
+          ],
+          [
+            "增減金額",
+            "258,577"
+          ],
+          [
+            "增減百分比",
+            "60.09"
+          ],
+          [
+            "備註/營收變化原因說明",
+            "產品品項增換"
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -765,44 +1215,144 @@
       "name": "銘旺科",
       "legalName": "銘旺科技股份有限公司",
       "marketTitle": "26",
-      "lastCheckedAt": "2026-05-07T17:36:59+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:03+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:59+08:00",
-        "officialDatetime": "115/05/07 17:36:59",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:03+08:00",
+        "officialDatetime": "115/05/08 21:01:03",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "銘旺科",
+        "marketKindName": "26",
+        "values": {
+          "本月": "28,936",
+          "去年同期": "26,128",
+          "增減金額": "-6,218",
+          "增減百分比": "-4.31",
+          "本年累計": "138,160",
+          "去年累計": "144,378",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "28,936"
+          ],
+          [
+            "去年同期",
+            "26,128"
+          ],
+          [
+            "增減金額",
+            "2,808"
+          ],
+          [
+            "增減百分比",
+            "10.75"
+          ],
+          [
+            "本年累計",
+            "138,160"
+          ],
+          [
+            "去年累計",
+            "144,378"
+          ],
+          [
+            "增減金額",
+            "-6,218"
+          ],
+          [
+            "增減百分比",
+            "-4.31"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
       "id": "擎亞",
       "code": "8096",
-      "name": "擎亞",
-      "legalName": "擎亞電子股份有限公司",
-      "marketTitle": "29",
-      "lastCheckedAt": "2026-05-07T17:36:59+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "name": "擎亞電子股份有限公司",
+      "legalName": "",
+      "marketTitle": "上櫃電子通路業",
+      "lastCheckedAt": "2026-05-08T21:01:03+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:59+08:00",
-        "officialDatetime": "115/05/07 17:36:59",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:03+08:00",
+        "officialDatetime": "115/05/08 21:01:03",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "擎亞電子股份有限公司",
+        "marketKindName": "上櫃電子通路業",
+        "values": {
+          "本月": "4,356,942",
+          "去年同期": "3,590,208",
+          "增減金額": "-3,586,762",
+          "增減百分比": "-19.80",
+          "本年累計": "14,530,352",
+          "去年累計": "18,117,114",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "4,356,942"
+          ],
+          [
+            "去年同期",
+            "3,590,208"
+          ],
+          [
+            "增減金額",
+            "766,734"
+          ],
+          [
+            "增減百分比",
+            "21.36"
+          ],
+          [
+            "本年累計",
+            "14,530,352"
+          ],
+          [
+            "去年累計",
+            "18,117,114"
+          ],
+          [
+            "增減金額",
+            "-3,586,762"
+          ],
+          [
+            "增減百分比",
+            "-19.80"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -811,7 +1361,7 @@
       "name": "豊漁",
       "legalName": "豊漁股份有限公司",
       "marketTitle": "16",
-      "lastCheckedAt": "2026-05-07T17:36:59+08:00",
+      "lastCheckedAt": "2026-05-08T21:01:04+08:00",
       "lastStatus": "pending",
       "lastMessage": "查無相符資料",
       "revenue": {
@@ -820,8 +1370,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:59+08:00",
-        "officialDatetime": "115/05/07 17:36:59",
+        "checkedAt": "2026-05-08T21:01:04+08:00",
+        "officialDatetime": "115/05/08 21:01:04",
         "message": "查無相符資料",
         "status": "pending",
         "verified": false,
@@ -834,7 +1384,7 @@
       "name": "振大環球",
       "legalName": "振大環球股份有限公司",
       "marketTitle": "04",
-      "lastCheckedAt": "2026-05-07T17:36:59+08:00",
+      "lastCheckedAt": "2026-05-08T21:01:04+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -843,8 +1393,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:36:59+08:00",
-        "officialDatetime": "115/05/07 17:36:59",
+        "checkedAt": "2026-05-08T21:01:04+08:00",
+        "officialDatetime": "115/05/08 21:01:04",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -907,21 +1457,71 @@
       "name": "佐茂",
       "legalName": "佐茂股份有限公司",
       "marketTitle": "25",
-      "lastCheckedAt": "2026-05-07T17:37:00+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:04+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:37:00+08:00",
-        "officialDatetime": "115/05/07 17:37:00",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:04+08:00",
+        "officialDatetime": "115/05/08 21:01:04",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "佐茂",
+        "marketKindName": "25",
+        "values": {
+          "本月": "158,419",
+          "去年同期": "162,762",
+          "增減金額": "-7,458",
+          "增減百分比": "-1.30",
+          "本年累計": "564,337",
+          "去年累計": "571,795",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "158,419"
+          ],
+          [
+            "去年同期",
+            "162,762"
+          ],
+          [
+            "增減金額",
+            "-4,343"
+          ],
+          [
+            "增減百分比",
+            "-2.67"
+          ],
+          [
+            "本年累計",
+            "564,337"
+          ],
+          [
+            "去年累計",
+            "571,795"
+          ],
+          [
+            "增減金額",
+            "-7,458"
+          ],
+          [
+            "增減百分比",
+            "-1.30"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -930,21 +1530,71 @@
       "name": "台積電",
       "legalName": "台灣積體電路製造股份有限公司",
       "marketTitle": "24",
-      "lastCheckedAt": "2026-05-07T17:37:00+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:04+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:37:00+08:00",
-        "officialDatetime": "115/05/07 17:37:00",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:04+08:00",
+        "officialDatetime": "115/05/08 21:01:04",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "台積電",
+        "marketKindName": "24",
+        "values": {
+          "本月": "410,725,118",
+          "去年同期": "349,566,940",
+          "增減金額": "356,007,954",
+          "增減百分比": "29.95",
+          "本年累計": "1,544,828,558",
+          "去年累計": "1,188,820,604",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "410,725,118"
+          ],
+          [
+            "去年同期",
+            "349,566,940"
+          ],
+          [
+            "增減金額",
+            "61,158,178"
+          ],
+          [
+            "增減百分比",
+            "17.50"
+          ],
+          [
+            "本年累計",
+            "1,544,828,558"
+          ],
+          [
+            "去年累計",
+            "1,188,820,604"
+          ],
+          [
+            "增減金額",
+            "356,007,954"
+          ],
+          [
+            "增減百分比",
+            "29.95"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -953,21 +1603,71 @@
       "name": "凌航",
       "legalName": "凌航科技股份有限公司",
       "marketTitle": "24",
-      "lastCheckedAt": "2026-05-07T17:37:00+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:05+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:37:00+08:00",
-        "officialDatetime": "115/05/07 17:37:00",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:05+08:00",
+        "officialDatetime": "115/05/08 21:01:04",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "凌航",
+        "marketKindName": "24",
+        "values": {
+          "本月": "3,852,946",
+          "去年同期": "544,331",
+          "增減金額": "5,842,487",
+          "增減百分比": "296.85",
+          "本年累計": "7,810,638",
+          "去年累計": "1,968,151",
+          "備註/營收變化原因說明": "市場價格上漲及需求增加。"
+        },
+        "rawData": [
+          [
+            "本月",
+            "3,852,946"
+          ],
+          [
+            "去年同期",
+            "544,331"
+          ],
+          [
+            "增減金額",
+            "3,308,615"
+          ],
+          [
+            "增減百分比",
+            "607.83"
+          ],
+          [
+            "本年累計",
+            "7,810,638"
+          ],
+          [
+            "去年累計",
+            "1,968,151"
+          ],
+          [
+            "增減金額",
+            "5,842,487"
+          ],
+          [
+            "增減百分比",
+            "296.85"
+          ],
+          [
+            "備註/營收變化原因說明",
+            "市場價格上漲及需求增加。"
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     },
     {
@@ -976,21 +1676,71 @@
       "name": "至上",
       "legalName": "至上電子股份有限公司",
       "marketTitle": "29",
-      "lastCheckedAt": "2026-05-07T17:37:00+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
+      "lastCheckedAt": "2026-05-08T21:01:05+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
       "revenue": {
         "sourceName": "公開資訊觀測站",
         "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11504",
         "targetLabel": "2026 年 4 月",
-        "checkedAt": "2026-05-07T17:37:00+08:00",
-        "officialDatetime": "115/05/07 17:37:00",
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
+        "checkedAt": "2026-05-08T21:01:05+08:00",
+        "officialDatetime": "115/05/08 21:01:05",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11504",
+        "companyAbbreviation": "至上",
+        "marketKindName": "29",
+        "values": {
+          "本月": "35,061,095",
+          "去年同期": "22,480,940",
+          "增減金額": "76,427,260",
+          "增減百分比": "111.09",
+          "本年累計": "145,225,637",
+          "去年累計": "68,798,377",
+          "備註/營收變化原因說明": "營收大幅成長，主要係記憶體等零組件價格持續上漲，伺服器及手機客戶拉貨動能強勁所致。"
+        },
+        "rawData": [
+          [
+            "本月",
+            "35,061,095"
+          ],
+          [
+            "去年同期",
+            "22,480,940"
+          ],
+          [
+            "增減金額",
+            "12,580,155"
+          ],
+          [
+            "增減百分比",
+            "55.96"
+          ],
+          [
+            "本年累計",
+            "145,225,637"
+          ],
+          [
+            "去年累計",
+            "68,798,377"
+          ],
+          [
+            "增減金額",
+            "76,427,260"
+          ],
+          [
+            "增減百分比",
+            "111.09"
+          ],
+          [
+            "備註/營收變化原因說明",
+            "營收大幅成長，主要係記憶體等零組件價格持續上漲，伺服器及手機客戶拉貨動能強勁所致。"
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
       }
     }
   ],
@@ -1002,17 +1752,32 @@
     "label": "2026 年 4 月"
   },
   "announcement": {
-    "generatedAt": "2026-05-07T17:37:00+08:00",
+    "generatedAt": "2026-05-08T21:01:05+08:00",
     "headline": "截止今日17:00 4月月營收",
-    "newlyUpdatedCount": 7,
+    "newlyUpdatedCount": 22,
     "newlyUpdatedNames": [
-      "德微(3675)",
+      "友威科技股份有限公司(3580)",
+      "德微科技股份有限公司(3675)",
+      "樺漢(6414)",
+      "瑞祺電通(6416)",
       "昇貿(3305)",
       "慶康科技(8098)",
       "世紀鋼(9958)",
       "騰輝電子-KY(6672)",
       "中砂(1560)",
-      "振大環球(4441)"
+      "耀登(3138)",
+      "晶呈科技股份有限公司(4768)",
+      "聖暉工程科技股份有限公司(5536)",
+      "朋億股份有限公司(6613)",
+      "藍新資訊(6938)",
+      "達運光電(8045)",
+      "銘旺科(2429)",
+      "擎亞電子股份有限公司(8096)",
+      "振大環球(4441)",
+      "佐茂(7854)",
+      "台積電(2330)",
+      "凌航(3135)",
+      "至上(8112)"
     ],
     "dailyUpdates": [
       {
@@ -1060,8 +1825,24 @@
       },
       {
         "dateLabel": "5/8",
-        "count": 0,
-        "names": []
+        "count": 15,
+        "names": [
+          "友威科技股份有限公司(3580)",
+          "樺漢(6414)",
+          "瑞祺電通(6416)",
+          "耀登(3138)",
+          "晶呈科技股份有限公司(4768)",
+          "聖暉工程科技股份有限公司(5536)",
+          "朋億股份有限公司(6613)",
+          "藍新資訊(6938)",
+          "達運光電(8045)",
+          "銘旺科(2429)",
+          "擎亞電子股份有限公司(8096)",
+          "佐茂(7854)",
+          "台積電(2330)",
+          "凌航(3135)",
+          "至上(8112)"
+        ]
       },
       {
         "dateLabel": "5/9",
@@ -1079,38 +1860,38 @@
         "names": []
       }
     ],
-    "pendingCount": 20,
+    "pendingCount": 5,
     "pendingNames": [
-      "友威科(3580)",
-      "樺漢(6414)",
-      "瑞祺電通(6416)",
-      "耀登(3138)",
-      "晶呈科技(4768)",
-      "聖暉*(5536)",
-      "桓鼎-KY(5543)",
-      "朋億*(6613)",
+      "桓鼎股份有限公司(5543)",
       "聯純(6977)",
-      "藍新資訊(6938)",
       "華勝-KY(2248)",
       "樺緯物聯(7455)",
-      "達運光電(8045)",
-      "銘旺科(2429)",
-      "擎亞(8096)",
-      "豊漁(7847)",
-      "佐茂(7854)",
-      "台積電(2330)",
-      "凌航(3135)",
-      "至上(8112)"
+      "豊漁(7847)"
     ],
     "baselineTargetYymm": "11504",
     "baselineUpdatedCodes": [
+      "3580",
       "3675",
+      "6414",
+      "6416",
       "3305",
       "8098",
       "9958",
       "6672",
       "1560",
-      "4441"
+      "3138",
+      "4768",
+      "5536",
+      "6613",
+      "6938",
+      "8045",
+      "2429",
+      "8096",
+      "4441",
+      "7854",
+      "2330",
+      "3135",
+      "8112"
     ]
   },
   "schedule": {
@@ -1122,5 +1903,5 @@
     "localUrl": "",
     "networkUrls": []
   },
-  "updatedAt": "2026-05-07T17:37:00+08:00"
+  "updatedAt": "2026-05-08T21:01:05+08:00"
 }
