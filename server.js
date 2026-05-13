@@ -192,9 +192,39 @@ async function resolveCompany(query) {
 function dataPairsToObject(data) {
   const out = {};
   if (!Array.isArray(data)) return out;
+  let changeCount = 0;
+  let pctCount = 0;
+
   for (const row of data) {
-    if (Array.isArray(row) && row.length >= 2) out[row[0]] = row[1];
+    if (!Array.isArray(row) || row.length < 2) continue;
+    const label = String(row[0] || "").trim();
+    const value = row[1];
+
+    if (label === "增減金額") {
+      changeCount += 1;
+      if (changeCount === 1) {
+        out["增減金額"] = value;
+        out["本月增減金額"] = value;
+      } else {
+        out["累計增減金額"] = value;
+      }
+      continue;
+    }
+
+    if (label === "增減百分比") {
+      pctCount += 1;
+      if (pctCount === 1) {
+        out["增減百分比"] = value;
+        out["本月增減百分比"] = value;
+      } else {
+        out["累計增減百分比"] = value;
+      }
+      continue;
+    }
+
+    out[label] = value;
   }
+
   return out;
 }
 
