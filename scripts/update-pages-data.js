@@ -378,7 +378,7 @@ function normalizeRevenueResult(company, target, mopsResult) {
     verified: true,
     reportedYymm,
     companyAbbreviation: shortCompanyName(company, mopsResult),
-    marketKindName: company.marketTitle || mopsResult.result.marketKindName || "",
+    marketKindName: mopsResult.result.marketKindName || company.marketTitle || "",
     values: dataPairsToObject(mopsResult.result.data),
     rawData: mopsResult.result.data || [],
     note: mopsResult.result.note || ""
@@ -636,8 +636,8 @@ function excelCompanyName(stock) {
 
 function excelMarketName(stock) {
   return (
-    stock.marketTitle ||
     (stock.revenue && stock.revenue.marketKindName) ||
+    stock.marketTitle ||
     ""
   );
 }
