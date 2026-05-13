@@ -783,6 +783,7 @@ async function buildSnapshot() {
 async function main() {
   const snapshot = await buildSnapshot();
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
+  snapshot.excelReport = await buildMonthlyExcelReport(snapshot);
   await fs.writeFile(OUTPUT_PATH, JSON.stringify(snapshot, null, 2), "utf8");
   console.log(`Wrote ${OUTPUT_PATH}`);
   console.log(`Tracked stocks: ${snapshot.stocks.length}`);
