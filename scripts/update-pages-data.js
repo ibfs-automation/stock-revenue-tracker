@@ -290,9 +290,37 @@ async function resolveCompany(query, companyProfiles) {
 function dataPairsToObject(data) {
   const out = {};
   if (!Array.isArray(data)) return out;
+  let changeCount = 0;
+  let pctCount = 0;
 
   for (const row of data) {
-    if (Array.isArray(row) && row.length >= 2) out[row[0]] = row[1];
+    if (!Array.isArray(row) || row.length < 2) continue;
+    const label = String(row[0] || "").trim();
+    const value = row[1];
+
+    if (label === "增減金額") {
+      changeCount += 1;
+      if (changeCount === 1) {
+        out["增減金額"] = value;
+        out["本月增減金額"] = value;
+      } else {
+        out["累計增減金額"] = value;
+      }
+      continue;
+    }
+
+    if (label === "增減百分比") {
+      pctCount += 1;
+      if (pctCount === 1) {
+        out["增減百分比"] = value;
+        out["本月增減百分比"] = value;
+      } else {
+        out["累計增減百分比"] = value;
+      }
+      continue;
+    }
+
+    out[label] = value;
   }
 
   return out;
@@ -447,86 +475,102 @@ function mergeUnique(left, right) {
   return [...new Set([...(left || []), ...(right || [])].filter(Boolean))];
 }
 
+function dailyUpdatesFromSeed(seedDailyUpdates, month) {
+  const dailyByDate = new Map();
+
+  for (const item of seedDailyUpdates || []) {
+    if (!item || !item.dateLabel) continue;
+    const names = mergeUnique([], item.names || []);
+    dailyByDate.set(item.dateLabel, {
+      dateLabel: item.dateLabel,
+      names,
+      count: names.length
+    });
+  }
+
+  for (let day = 1; day <= 11; day += 1) {
+    const dateLabel = `${month}/${day}`;
+    if (!dailyByDate.has(dateLabel)) {
+      dailyByDate.set(dateLabel, {
+        dateLabel,
+        count: 0,
+        names: []
+      });
+    }
+  }
+
+  return dailyByDate;
+}
+
+function parseCodeFromDisplayName(name) {
+  const match = String(name || "").match(/\((\d{4,6})\)\s*$/);
+  return match ? match[1] : null;
+}
+
+function announcedCodesFromDailyUpdates(dailyByDate) {
+  const codes = new Set();
+
+  for (const item of dailyByDate.values()) {
+    for (const name of item.names || []) {
+      const code = parseCodeFromDisplayName(name);
+      if (code) codes.add(code);
+    }
+  }
+
+  return codes;
+}
+
 function buildAnnouncement(stocks, target, previousSnapshot) {
   const now = taipeiParts();
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
   const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
 
-  const previousAnnouncement = previousSnapshot && previousSnapshot.announcement
-    ? previousSnapshot.announcement
-    : {};
-
   const sameTargetMonth = previousSnapshot &&
     previousSnapshot.target &&
     previousSnapshot.target.yymm === target.yymm;
 
-  const manualBaseline = MANUAL_BASELINES[target.yymm] || null;
-  const previousHasBaseline = sameTargetMonth &&
-    Array.isArray(previousAnnouncement.baselineUpdatedCodes);
+  const previousAnnouncement = sameTargetMonth && previousSnapshot.announcement
+    ? previousSnapshot.announcement
+    : null;
 
-  const previousDailyUpdates = manualBaseline
-    ? manualBaseline.dailyUpdates
-    : previousHasBaseline && Array.isArray(previousAnnouncement.dailyUpdates)
-      ? previousAnnouncement.dailyUpdates
+  const manualBaseline = MANUAL_BASELINES[target.yymm] || null;
+
+  const previousDailyUpdates = previousAnnouncement &&
+    Array.isArray(previousAnnouncement.dailyUpdates) &&
+    previousAnnouncement.dailyUpdates.length
+    ? previousAnnouncement.dailyUpdates
+    : manualBaseline && Array.isArray(manualBaseline.dailyUpdates)
+      ? manualBaseline.dailyUpdates
       : [];
 
-  let previousBaselineCodes;
+  const dailyByDate = dailyUpdatesFromSeed(previousDailyUpdates, now.month);
+  const announcedCodes = announcedCodesFromDailyUpdates(dailyByDate);
 
-  if (manualBaseline) {
-    previousBaselineCodes = new Set(
-      manualBaseline.baselineUpdatedCodes.map(String)
-    );
-  } else if (previousHasBaseline) {
-    previousBaselineCodes = new Set(
-      previousAnnouncement.baselineUpdatedCodes.map(String)
-    );
-  } else if (sameTargetMonth && Array.isArray(previousSnapshot.stocks)) {
-    previousBaselineCodes = new Set(
-      previousSnapshot.stocks
-        .filter(stock => stock && stock.lastStatus === "updated")
-        .map(stock => String(stock.code))
-    );
-  } else {
-    previousBaselineCodes = new Set();
-  }
-
-  const dailyByDate = new Map();
-
-  for (let day = 1; day <= 11; day++) {
-    const dateLabel = `${now.month}/${day}`;
-    const previous = previousDailyUpdates.find(item => item.dateLabel === dateLabel);
-
-    dailyByDate.set(dateLabel, {
-      dateLabel,
-      count: previous && Array.isArray(previous.names) ? previous.names.length : 0,
-      names: previous && Array.isArray(previous.names) ? previous.names : []
-    });
+  if (previousAnnouncement && Array.isArray(previousAnnouncement.baselineUpdatedCodes)) {
+    for (const code of previousAnnouncement.baselineUpdatedCodes) {
+      announcedCodes.add(String(code));
+    }
+  } else if (manualBaseline && Array.isArray(manualBaseline.baselineUpdatedCodes)) {
+    for (const code of manualBaseline.baselineUpdatedCodes) {
+      announcedCodes.add(String(code));
+    }
   }
 
   const todayKey = `${now.month}/${now.day}`;
   const canRecordToday = now.day >= 1 && now.day <= 11 && now.hour >= 17;
-  let baselineUpdatedCodes = new Set(previousBaselineCodes);
-
-  if (!canRecordToday && dailyByDate.has(todayKey)) {
-    dailyByDate.set(todayKey, {
-      dateLabel: todayKey,
-      count: 0,
-      names: []
-    });
-  }
 
   if (canRecordToday && dailyByDate.has(todayKey)) {
+    const today = dailyByDate.get(todayKey);
     const newlyUpdated = updatedStocks.filter(stock =>
-      !previousBaselineCodes.has(String(stock.code))
+      !announcedCodes.has(String(stock.code))
     );
 
-    const today = dailyByDate.get(todayKey);
     today.names = mergeUnique(today.names, newlyUpdated.map(displayName));
     today.count = today.names.length;
 
-    baselineUpdatedCodes = new Set(
-      updatedStocks.map(stock => String(stock.code))
-    );
+    for (const stock of newlyUpdated) {
+      announcedCodes.add(String(stock.code));
+    }
   }
 
   const dailyUpdates = Array.from(dailyByDate.values());
@@ -564,7 +608,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     pendingCount: pending.length,
     pendingNames: pending.map(displayName).filter(Boolean),
     baselineTargetYymm: target.yymm,
-    baselineUpdatedCodes: [...baselineUpdatedCodes]
+    baselineUpdatedCodes: [...announcedCodes]
   };
 }
 
