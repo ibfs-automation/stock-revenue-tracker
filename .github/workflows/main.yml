@@ -39,9 +39,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Update revenue data
-        run: node scripts/update-pages-data.js
-
       - name: Save generated revenue data
         run: |
           git config user.name "github-actions[bot]"
