@@ -10,6 +10,7 @@ on:
       - main
     paths-ignore:
       - "public/data/revenue.json"
+      - "public/data/monthly-revenue-*.xlsx"
 
 permissions:
   contents: write
@@ -35,6 +36,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Update revenue data
         run: node scripts/update-pages-data.js
 
@@ -42,7 +46,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/revenue.json
+          git add public/data
           if git diff --cached --quiet; then
             echo "No revenue data changes"
           else
