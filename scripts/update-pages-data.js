@@ -5,6 +5,7 @@ const XLSX = require("xlsx");
 const ROOT = path.join(__dirname, "..");
 const TRACKED_STOCKS_PATH = path.join(ROOT, "tracked-stocks.json");
 const OUTPUT_DIR = path.join(ROOT, "public", "data");
+const OUTPUT_PATH = path.join(OUTPUT_DIR, "revenue.json");
 const MONTHLY_EXCEL_PREFIX = "monthly-revenue";
 const TAIPEI_TIME_ZONE = "Asia/Taipei";
 const MOPS_API_BASE = "https://mops.twse.com.tw/mops/api";
