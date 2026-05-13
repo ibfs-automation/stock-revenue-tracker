@@ -302,3 +302,44 @@ tbody tr:last-child td {
 .daily-updates p {
   margin: 0;
 }
+.excel-download {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.excel-download strong {
+  display: block;
+  font-size: 18px;
+}
+
+.excel-download a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .excel-download {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .excel-download a {
+    width: 100%;
+  }
+}
