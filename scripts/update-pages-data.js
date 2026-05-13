@@ -1,10 +1,11 @@
 const fs = require("fs/promises");
 const path = require("path");
+const XLSX = require("xlsx");
 
 const ROOT = path.join(__dirname, "..");
 const TRACKED_STOCKS_PATH = path.join(ROOT, "tracked-stocks.json");
 const OUTPUT_DIR = path.join(ROOT, "public", "data");
-const OUTPUT_PATH = path.join(OUTPUT_DIR, "revenue.json");
+const MONTHLY_EXCEL_PREFIX = "monthly-revenue";
 const TAIPEI_TIME_ZONE = "Asia/Taipei";
 const MOPS_API_BASE = "https://mops.twse.com.tw/mops/api";
 const MOPS_PAGE_URL = "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs";
@@ -610,6 +611,108 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     baselineTargetYymm: target.yymm,
     baselineUpdatedCodes: [...announcedCodes]
   };
+}
+function excelReportFileName(target) {
+  return `${MONTHLY_EXCEL_PREFIX}-${target.yymm}.xlsx`;
+}
+
+function excelValue(stock, key) {
+  const values = stock.revenue && stock.revenue.values
+    ? stock.revenue.values
+    : {};
+
+  return values[key] || "";
+}
+
+function excelCompanyName(stock) {
+  return (
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
+    stock.name ||
+    stock.id ||
+    ""
+  );
+}
+
+function excelMarketName(stock) {
+  return (
+    stock.marketTitle ||
+    (stock.revenue && stock.revenue.marketKindName) ||
+    ""
+  );
+}
+
+function buildMonthlyExcelRows(stocks, target) {
+  const fields = [
+    ["公司代號", stock => stock.code || ""],
+    ["公司名稱", stock => excelCompanyName(stock)],
+    ["市場別", stock => excelMarketName(stock)],
+    ["資料年月", () => target.yymm],
+    ["本月", stock => excelValue(stock, "本月")],
+    ["去年同期", stock => excelValue(stock, "去年同期")],
+    ["本月增減金額", stock => excelValue(stock, "本月增減金額") || excelValue(stock, "增減金額")],
+    ["本月增減百分比", stock => excelValue(stock, "本月增減百分比") || excelValue(stock, "增減百分比")],
+    ["本年累計", stock => excelValue(stock, "本年累計")],
+    ["去年累計", stock => excelValue(stock, "去年累計")],
+    ["累計增減金額", stock => excelValue(stock, "累計增減金額")],
+    ["累計增減百分比", stock => excelValue(stock, "累計增減百分比")],
+    ["備註/營收變化原因說明", stock => excelValue(stock, "備註/營收變化原因說明")]
+  ];
+
+  return fields.map(([label, getter]) => [
+    label,
+    ...stocks.map(stock => getter(stock))
+  ]);
+}
+
+async function buildMonthlyExcelReport(snapshot) {
+  const now = taipeiParts();
+  const fileName = excelReportFileName(snapshot.target);
+  const filePath = path.join(OUTPUT_DIR, fileName);
+  const publicPath = `data/${fileName}`;
+  const shouldGenerate = now.day === 11 && now.hour >= 17;
+
+  if (shouldGenerate) {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(
+      buildMonthlyExcelRows(snapshot.stocks, snapshot.target)
+    );
+
+    worksheet["!cols"] = [
+      { wch: 26 },
+      ...snapshot.stocks.map(() => ({ wch: 18 }))
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "月營收");
+    XLSX.writeFile(workbook, filePath);
+
+    return {
+      available: true,
+      targetYymm: snapshot.target.yymm,
+      targetLabel: snapshot.target.label,
+      file: publicPath,
+      generatedAt: now.isoLike
+    };
+  }
+
+  try {
+    await fs.access(filePath);
+
+    return {
+      available: true,
+      targetYymm: snapshot.target.yymm,
+      targetLabel: snapshot.target.label,
+      file: publicPath,
+      generatedAt: null
+    };
+  } catch (error) {
+    return {
+      available: false,
+      targetYymm: snapshot.target.yymm,
+      targetLabel: snapshot.target.label,
+      file: publicPath,
+      generatedAt: null
+    };
+  }
 }
 
 async function buildSnapshot() {
