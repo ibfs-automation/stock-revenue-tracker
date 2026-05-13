@@ -64,7 +64,7 @@ function render(snapshot) {
         <td>
           <div class="stock-name">
             <strong>${escapeHtml(stockDisplayName(stock))}</strong>
-            <span>${escapeHtml(stock.marketTitle || revenue.marketKindName || "")}</span>
+            <span>${escapeHtml(revenue.marketKindName || stock.marketTitle || "")}</span>
           </div>
         </td>
         <td>${escapeHtml(revenue.targetLabel || (snapshot.target && snapshot.target.label) || "")}</td>
