@@ -207,12 +207,24 @@ rows.addEventListener("click", async event => {
   const button = event.target.closest("[data-code]");
   if (!button) return;
 
+  if (shareUrl.textContent === "GitHub Pages") {
+    pageStatus.textContent = "雲端版請透過表單或 tracked-stocks.json 調整追蹤清單";
+    return;
+  }
+
   const code = button.dataset.code;
   button.disabled = true;
-  const result = await requestJson(`/api/stocks/${encodeURIComponent(code)}`, {
-    method: "DELETE"
-  });
-  render(result.snapshot);
+
+  try {
+    const result = await requestJson(`/api/stocks/${encodeURIComponent(code)}`, {
+      method: "DELETE"
+    });
+    render(result.snapshot);
+  } catch (error) {
+    pageStatus.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
 });
 
 load().catch(error => {
