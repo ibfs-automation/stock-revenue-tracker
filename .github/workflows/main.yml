@@ -46,12 +46,17 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          git reset --hard origin/main
+
+          node scripts/update-pages-data.js
+
           git add public/data
           if git diff --cached --quiet; then
             echo "No revenue data changes"
           else
             git commit -m "Update revenue snapshot [skip ci]"
-            git pull --rebase origin main
             git push
           fi
 
