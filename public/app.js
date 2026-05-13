@@ -10,6 +10,9 @@ const announcementTitle = document.querySelector("#announcementTitle");
 const dailyUpdates = document.querySelector("#dailyUpdates");
 const pendingCount = document.querySelector("#pendingCount");
 const pendingNames = document.querySelector("#pendingNames");
+const excelDownload = document.querySelector("#excelDownload");
+const excelTitle = document.querySelector("#excelTitle");
+const excelLink = document.querySelector("#excelLink");
 
 const formatter = new Intl.NumberFormat("zh-TW");
 
@@ -44,6 +47,7 @@ function render(snapshot) {
   const networkUrl = snapshot.share && snapshot.share.networkUrls && snapshot.share.networkUrls[0];
   shareUrl.textContent = networkUrl || (snapshot.mode === "github-pages" ? "GitHub Pages" : "同機使用");
     renderAnnouncement(snapshot.announcement);
+  renderExcelDownload(snapshot.excelReport);
 
   if (!snapshot.stocks.length) {
     rows.innerHTML = '<tr><td colspan="8" class="empty">尚未加入股票</td></tr>';
@@ -86,6 +90,17 @@ function stockDisplayName(stock) {
 
   if (name && code && name !== code) return `${name}(${code})`;
   return name || code || "";
+}
+function renderExcelDownload(report) {
+  if (!report || !report.available || !report.file) {
+    excelDownload.hidden = true;
+    return;
+  }
+
+  excelDownload.hidden = false;
+  excelTitle.textContent = `${report.targetLabel || "本月"} 月營收 Excel`;
+  excelLink.href = report.file;
+  excelLink.download = report.file.split("/").pop() || "";
 }
 function renderAnnouncement(data) {
   if (!data) {
