@@ -164,7 +164,9 @@ const SOURCES = [
       process.env.TPEX_ESB_IPO_CSV_URL,
       "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
     ].filter(Boolean),
-    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "興櫃日期", "興櫃掛牌日期", "櫃檯買賣日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期"]
+    detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
+    allowRawTextRows: true,
+    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期"]
   }
 ];
 
@@ -348,6 +350,14 @@ function normalizeCompanyName(row, code) {
   return "";
 }
 
+function regexEscape(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function rowRawText(row) {
+  return String((row && (row.__rawText || row.__rowText || row.__pageText)) || "").replace(/\s+/g, " ").trim();
+}
+
 function parseTaiwanDate(value) {
   const text = String(value || "").trim();
   if (!text || /^[-—]+$/.test(text)) return null;
@@ -374,6 +384,51 @@ function parseTaiwanDate(value) {
   }
 
   return null;
+}
+
+function extractDateFromTextByKeys(text, keys) {
+  const body = String(text || "").replace(/\s+/g, " ").trim();
+  if (!body) return null;
+
+  const datePattern = "(20\\d{2}[/-]\\d{1,2}[/-]\\d{1,2}|\\d{2,3}\\s*(?:年|[./-])\\s*\\d{1,2}\\s*(?:月|[./-])\\s*\\d{1,2}\\s*(?:日)?)";
+  for (const key of keys || []) {
+    const cleanKey = String(key || "").trim();
+    if (!cleanKey) continue;
+    const match = body.match(new RegExp(`${regexEscape(cleanKey)}[^\\d]{0,24}${datePattern}`));
+    if (match) {
+      const parsed = parseTaiwanDate(match[1]);
+      if (parsed) return parsed;
+    }
+  }
+
+  const keywordMatch = body.match(new RegExp(`(?:登錄|掛牌|開始(?:櫃檯)?買賣|上興櫃)[^\\d]{0,24}${datePattern}`));
+  if (keywordMatch) return parseTaiwanDate(keywordMatch[1]);
+
+  const dates = [...body.matchAll(new RegExp(datePattern, "g"))]
+    .map(match => parseTaiwanDate(match[1]))
+    .filter(Boolean);
+  return dates[0] || null;
+}
+
+function normalizeCompanyNameFromText(text, code) {
+  const body = String(text || "").replace(/\s+/g, " ").trim();
+  if (!body) return "";
+
+  const labeled = body.match(/(?:公司(?:簡稱|名稱)|證券(?:簡稱|名稱)|股票(?:簡稱|名稱)|簡稱|名稱)\s*[:：]?\s*([^\s，,、;；]+)/);
+  if (labeled && labeled[1]) {
+    const cleaned = labeled[1].replace(/[()（）]/g, "").trim();
+    if (cleaned && cleaned !== code && !parseTaiwanDate(cleaned)) return cleaned;
+  }
+
+  const withoutDates = body
+    .replace(/20\d{2}[/-]\d{1,2}[/-]\d{1,2}/g, " ")
+    .replace(/\d{2,3}\s*(?:年|[./-])\s*\d{1,2}\s*(?:月|[./-])\s*\d{1,2}\s*(?:日)?/g, " ")
+    .replace(new RegExp(`(^|[^\\d])${regexEscape(code)}(?!\\d)`, "g"), " ")
+    .replace(/最近登錄興櫃公司|資料查詢|下載近期將掛牌股票認購價格|公司簡稱|公司名稱|證券簡稱|證券名稱|股票名稱|股票代號|證券代號|登錄日期|登錄日|掛牌日期|掛牌日|開始買賣日期|開始櫃檯買賣日期|興櫃|上興櫃|詳情|詳細資料/g, " ")
+    .replace(/[()（）:：，,、;；｜|/\\]+/g, " ");
+
+  const tokens = withoutDates.split(/\s+/).filter(Boolean);
+  return tokens.find(token => /[\u4e00-\u9fff]/.test(token) && token.length <= 16 && !/日期|代號|名稱|查詢|資料|下載|公司$/.test(token)) || "";
 }
 
 function objectRows(payload) {
@@ -473,6 +528,7 @@ async function discoveredSourceUrls(source) {
       if (!response.ok) continue;
       const html = await decodeResponseText(response);
       candidates.push(...pageDataCandidates(html, pageUrl));
+      if (source.detailLinkPattern) candidates.push(pageUrl);
     } catch {
       // Discovery is best-effort; explicit source URLs still run below.
     }
@@ -525,6 +581,72 @@ function parseEmbeddedJsonRows(text) {
   }
 
   return rows;
+}
+
+function detailLinkCandidatesFromHtml(source, html, pageUrl) {
+  if (!source.detailLinkPattern) return [];
+
+  const base = new URL(pageUrl);
+  const links = [];
+  for (const match of String(html || "").matchAll(/href=["']([^"']+)["']/gi)) {
+    try {
+      const href = new URL(decodeHtml(match[1]), base).href;
+      if (source.detailLinkPattern.test(href)) links.push(href);
+    } catch {
+      // Ignore non-URL link targets.
+    }
+  }
+
+  return uniqueValues(links);
+}
+
+function rowsFromRawText(source, url, text) {
+  if (!source.allowRawTextRows) return [];
+
+  const body = String(text || "").replace(/\s+/g, " ").trim();
+  const code = extractStockCode(url) || extractStockCode(body);
+  const date = extractDateFromTextByKeys(body, source.dateKeys);
+  if (!code || !date) return [];
+
+  const name = normalizeCompanyNameFromText(body, code);
+  if (!name) return [];
+
+  return [{
+    公司代號: code,
+    股票代號: code,
+    證券代號: code,
+    公司簡稱: name,
+    證券簡稱: name,
+    登錄日期: date,
+    __rawText: body,
+    __detailUrl: url
+  }];
+}
+
+async function fetchRowsFromDetailLinks(source, pageUrl, html) {
+  const rows = [];
+  const urlReports = [];
+  const detailUrls = detailLinkCandidatesFromHtml(source, html, pageUrl).slice(0, Number(process.env.IPO_CALENDAR_MAX_DETAIL_PAGES || 120));
+
+  for (const detailUrl of detailUrls) {
+    try {
+      const { text, contentType } = await fetchTextFromUrl(detailUrl, "text/html, application/json, text/plain, */*");
+      const parsed = [
+        ...parseRowsFromText(source, detailUrl, text, contentType),
+        ...rowsFromRawText(source, detailUrl, textFromHtmlCell(text))
+      ];
+      urlReports.push({ url: `detail:${detailUrl}`, rows: parsed.length });
+      if (parsed.length) rows.push(...parsed);
+    } catch (error) {
+      urlReports.push({ url: `detail:${detailUrl}`, rows: 0, error: error.message });
+    }
+  }
+
+  if (detailUrls.length) {
+    urlReports.unshift({ url: `detail-links:${pageUrl}`, rows: detailUrls.length });
+  }
+
+  return { rows, urlReports };
 }
 
 async function fetchJsonFromFirstAvailable(source) {
@@ -615,6 +737,11 @@ async function fetchRowsFromAllAvailable(source) {
       const rows = parseRowsFromText(source, url, text, contentType);
       urlReports.push({ url, rows: rows.length });
       if (rows.length) allRows.push(...rows);
+      if (/html/i.test(contentType) || /^\s*</.test(text)) {
+        const detailResult = await fetchRowsFromDetailLinks(source, url, text);
+        urlReports.push(...detailResult.urlReports);
+        if (detailResult.rows.length) allRows.push(...detailResult.rows);
+      }
     } catch (error) {
       errors.push(`${url} ${error.message}`);
       urlReports.push({ url, rows: 0, error: error.message });
@@ -688,35 +815,39 @@ async function browserRowsForSource(source) {
         await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60000 });
         await page.waitForTimeout(1500);
 
-        await page.evaluate((year) => {
-          const controls = [...document.querySelectorAll("input, select")];
-          for (const control of controls) {
-            const label = `${control.name || ""} ${control.id || ""} ${control.getAttribute("placeholder") || ""} ${control.getAttribute("aria-label") || ""}`;
-            if (!/年|year/i.test(label)) continue;
-            if (control.tagName === "SELECT") {
-              const option = [...control.options].find(item => item.value === year || item.textContent.trim() === year);
-              if (option) {
-                control.value = option.value;
+        const currentYear = new Date().getFullYear();
+        const yearValues = [...new Set([String(currentYear), String(currentYear - 1911)])];
+        for (const yearValue of yearValues) {
+          await page.evaluate((year) => {
+            const controls = [...document.querySelectorAll("input, select")];
+            for (const control of controls) {
+              const label = `${control.name || ""} ${control.id || ""} ${control.getAttribute("placeholder") || ""} ${control.getAttribute("aria-label") || ""}`;
+              if (!/年|year/i.test(label)) continue;
+              if (control.tagName === "SELECT") {
+                const option = [...control.options].find(item => item.value === year || item.textContent.trim() === year);
+                if (option) {
+                  control.value = option.value;
+                  control.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+              } else {
+                control.value = year;
+                control.dispatchEvent(new Event("input", { bubbles: true }));
                 control.dispatchEvent(new Event("change", { bubbles: true }));
               }
-            } else {
-              control.value = year;
-              control.dispatchEvent(new Event("input", { bubbles: true }));
-              control.dispatchEvent(new Event("change", { bubbles: true }));
             }
-          }
-        }, String(new Date().getFullYear()));
+          }, yearValue);
 
-        const clicked = await page.evaluate(() => {
-          const buttons = [...document.querySelectorAll("button, input[type=button], input[type=submit], a")];
-          const target = buttons.find(button => /查詢|搜尋|送出|Search/i.test(button.textContent || button.value || ""));
-          if (!target) return false;
-          target.click();
-          return true;
-        });
-        if (clicked) {
-          await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
-          await page.waitForTimeout(1000);
+          const clicked = await page.evaluate(() => {
+            const buttons = [...document.querySelectorAll("button, input[type=button], input[type=submit], a")];
+            const target = buttons.find(button => /查詢|搜尋|送出|Search/i.test(button.textContent || button.value || ""));
+            if (!target) return false;
+            target.click();
+            return true;
+          });
+          if (clicked) {
+            await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
+            await page.waitForTimeout(1000);
+          }
         }
 
         await Promise.allSettled(responsePromises);
@@ -750,12 +881,72 @@ async function browserRowsForSource(source) {
             }
           }
 
+          const seenTexts = new Set();
+          const rawCandidates = [
+            ...document.querySelectorAll("a[href*='detail'], li, article, section, [class*='item'], [class*='card'], [class*='row']")
+          ];
+          for (const element of rawCandidates) {
+            const rawText = text(element);
+            if (!rawText || rawText.length > 500 || seenTexts.has(rawText)) continue;
+            if (!/(^|[^\d])\d{4,6}(?!\d)/.test(rawText)) continue;
+            if (!/(20\d{2}[/-]\d{1,2}[/-]\d{1,2}|\d{2,3}\s*(?:年|[./-])\s*\d{1,2}\s*(?:月|[./-])\s*\d{1,2})/.test(rawText)) continue;
+            seenTexts.add(rawText);
+            const link = element.matches("a[href]") ? element : element.querySelector("a[href]");
+            parsed.push({
+              __rawText: rawText,
+              __detailUrl: link ? link.href : location.href
+            });
+          }
+
           return parsed;
         });
 
+        const detailLinks = await page.evaluate(() => {
+          const links = [...document.querySelectorAll("a[href]")].map(link => link.href).filter(Boolean);
+          return [...new Set(links)];
+        });
+        const matchingDetailLinks = source.detailLinkPattern
+          ? detailLinks.filter(url => source.detailLinkPattern.test(url)).slice(0, Number(process.env.IPO_CALENDAR_MAX_DETAIL_PAGES || 120))
+          : [];
+        const detailRows = [];
+        for (const detailUrl of matchingDetailLinks) {
+          const detailPage = await browser.newPage({ locale: "zh-TW", timezoneId: TIME_ZONE });
+          try {
+            await detailPage.goto(detailUrl, { waitUntil: "networkidle", timeout: 60000 });
+            await detailPage.waitForTimeout(800);
+            const detailText = await detailPage.evaluate(() => document.body ? (document.body.innerText || document.body.textContent || "") : "");
+            detailRows.push(...rowsFromRawText(source, detailUrl, detailText));
+            const detailPageRows = await detailPage.evaluate(() => {
+              const text = element => (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
+              const parsed = [];
+              for (const table of document.querySelectorAll("table")) {
+                const rawRows = [...table.querySelectorAll("tr")]
+                  .map(tr => [...tr.querySelectorAll("th,td")].map(cell => text(cell)))
+                  .filter(row => row.some(Boolean));
+                if (rawRows.length < 2) continue;
+                let headerIndex = rawRows.findIndex(row => row.some(cell => /公司|證券|股票|代號|簡稱|名稱|買賣日期|登錄日期/.test(cell)));
+                if (headerIndex < 0) headerIndex = 0;
+                const headers = rawRows[headerIndex];
+                for (const row of rawRows.slice(headerIndex + 1)) {
+                  parsed.push(Object.fromEntries(headers.map((header, index) => [header, row[index] || ""])));
+                }
+              }
+              return parsed;
+            });
+            detailRows.push(...detailPageRows);
+          } catch (error) {
+            reports.push({ url: `browser-detail:${detailUrl}`, rows: 0, error: error.message });
+          } finally {
+            await detailPage.close().catch(() => {});
+          }
+        }
+
         rows.push(...networkRows, ...pageRows);
+        rows.push(...detailRows);
         reports.push(...networkReports);
         reports.push({ url: `browser-dom:${pageUrl}`, rows: pageRows.length });
+        if (matchingDetailLinks.length) reports.push({ url: `browser-detail-links:${pageUrl}`, rows: matchingDetailLinks.length });
+        if (detailRows.length) reports.push({ url: `browser-detail-rows:${pageUrl}`, rows: detailRows.length });
       } catch (error) {
         reports.push({ url: `browser:${pageUrl}`, rows: 0, error: error.message });
       } finally {
@@ -1054,13 +1245,14 @@ async function fetchRowsFromFirstAvailable(source) {
 }
 
 function normalizeCompany(source, row) {
-  const listedDate = parseTaiwanDate(getValue(row, source.dateKeys));
+  const rawText = rowRawText(row);
+  const listedDate = parseTaiwanDate(getValue(row, source.dateKeys)) || extractDateFromTextByKeys(rawText, source.dateKeys);
   if (!listedDate) return null;
 
   const code = normalizeStockCode(row);
   if (!code) return null;
 
-  const name = normalizeCompanyName(row, code);
+  const name = normalizeCompanyName(row, code) || normalizeCompanyNameFromText(rawText, code);
   if (!name) return null;
 
   return {
