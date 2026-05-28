@@ -17,39 +17,6 @@ const DEFAULT_WINDOW = {
 
 const SOURCES = [
   {
-    id: "mops-listed-basic",
-    market: "TWSE",
-    label: "上市",
-    type: "csv",
-    urls: [
-      process.env.MOPS_LISTED_BASIC_URL,
-      "https://mopsfin.twse.com.tw/opendata/t187ap03_L.csv"
-    ].filter(Boolean),
-    dateKeys: ["上市日期", "股票上市買賣日期", "掛牌日期", "listedDate", "ListingDate"]
-  },
-  {
-    id: "mops-otc-basic",
-    market: "TPEX",
-    label: "上櫃",
-    type: "csv",
-    urls: [
-      process.env.MOPS_OTC_BASIC_URL,
-      "https://mopsfin.twse.com.tw/opendata/t187ap03_O.csv"
-    ].filter(Boolean),
-    dateKeys: ["上櫃日期", "上市日期", "股票上櫃買賣日期", "掛牌日期", "listedDate", "ListingDate"]
-  },
-  {
-    id: "mops-emerging-basic",
-    market: "ESB",
-    label: "興櫃",
-    type: "csv",
-    urls: [
-      process.env.MOPS_EMERGING_BASIC_URL,
-      "https://mopsfin.twse.com.tw/opendata/t187ap03_R.csv"
-    ].filter(Boolean),
-    dateKeys: ["興櫃日期", "上市日期", "登錄日期", "掛牌日期", "listedDate", "registrationDate", "ListingDate"]
-  },
-  {
     id: "twse-applylisting-local",
     market: "TWSE",
     label: "上市",
@@ -89,8 +56,10 @@ const SOURCES = [
     id: "tpex-mainboard-applicants",
     market: "TPEX",
     label: "上櫃",
-    type: "json",
+    type: "html",
     urls: [
+      process.env.TPEX_MAINBOARD_APPLICANTS_HTML_URL,
+      "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company.html",
       process.env.TPEX_MAINBOARD_APPLICANTS_URL,
       "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies",
       "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_applicant_companies",
@@ -103,8 +72,10 @@ const SOURCES = [
     id: "tpex-esb-ipo",
     market: "ESB",
     label: "興櫃",
-    type: "json",
+    type: "html",
     urls: [
+      process.env.TPEX_ESB_IPO_HTML_URL,
+      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html",
       process.env.TPEX_ESB_IPO_URL,
       "https://www.tpex.org.tw/openapi/v1/tpex_esb_listed_ipo",
       "https://www.tpex.org.tw/openapi/v1/tpex_esb_latest_listed_companies",
@@ -204,6 +175,57 @@ function getValue(row, keys) {
     const actual = normalized.get(normalizeKey(key));
     if (actual && row[actual] !== undefined && row[actual] !== null && String(row[actual]).trim() !== "") {
       return String(row[actual]).trim();
+    }
+  }
+
+  return "";
+}
+
+function extractStockCode(value) {
+  const matches = String(value || "").match(/(^|[^\d])(\d{4,6})(?!\d)/g) || [];
+  for (const match of matches) {
+    const code = (match.match(/\d{4,6}/) || [])[0];
+    if (code) return code;
+  }
+  return "";
+}
+
+function valueLooksLikeDateKey(key) {
+  return /日期|date|年月日|time/i.test(String(key || ""));
+}
+
+function normalizeStockCode(row) {
+  const direct = extractStockCode(getValue(row, KEY_ALIASES.code));
+  if (direct) return direct;
+
+  for (const [key, value] of Object.entries(row || {})) {
+    if (valueLooksLikeDateKey(key)) continue;
+    const code = extractStockCode(value);
+    if (code) return code;
+  }
+
+  return "";
+}
+
+function normalizeCompanyName(row, code) {
+  const direct = getValue(row, KEY_ALIASES.name);
+  const candidates = [
+    direct,
+    getValue(row, KEY_ALIASES.code),
+    ...Object.entries(row || {})
+      .filter(([key]) => !valueLooksLikeDateKey(key))
+      .map(([, value]) => String(value || ""))
+  ];
+
+  for (const candidate of candidates) {
+    const cleaned = String(candidate || "")
+      .replace(new RegExp(`(^|[^\\d])${code}(?!\\d)`, "g"), " ")
+      .replace(/[()（）]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (cleaned && cleaned !== code && !/^\d+$/.test(cleaned) && !parseTaiwanDate(cleaned)) {
+      return cleaned;
     }
   }
 
@@ -456,6 +478,14 @@ async function fetchHtmlFromFirstAvailable(source) {
       }
 
       const text = await response.text();
+      if (!/^\s*</.test(text)) {
+        try {
+          return { url, rows: objectRows(JSON.parse(text.replace(/^\uFEFF/, ""))) };
+        } catch {
+          // Fall through to HTML table parsing error below.
+        }
+      }
+
       const rows = parseHtmlTables(text);
       if (!rows.length) {
         errors.push(`${url} returned no parseable tables`);
@@ -480,9 +510,11 @@ function normalizeCompany(source, row) {
   const listedDate = parseTaiwanDate(getValue(row, source.dateKeys));
   if (!listedDate) return null;
 
-  const code = getValue(row, KEY_ALIASES.code);
-  const name = getValue(row, KEY_ALIASES.name);
-  if (!code && !name) return null;
+  const code = normalizeStockCode(row);
+  if (!code) return null;
+
+  const name = normalizeCompanyName(row, code);
+  if (!name) return null;
 
   return {
     id: `${source.market}-${code || name}-${listedDate}`,
@@ -560,9 +592,7 @@ function dedupeCompanies(companies) {
   const byKey = new Map();
 
   for (const company of companies) {
-    const key = company.code
-      ? `${company.market}|${company.code}|${company.listedDate}`
-      : `${company.market}|${company.name}|${company.listedDate}`;
+    const key = `${company.market}|${company.code}|${company.listedDate}`;
     byKey.set(key, byKey.has(key) ? mergeCompany(byKey.get(key), company) : company);
   }
 
@@ -570,9 +600,11 @@ function dedupeCompanies(companies) {
 }
 
 function makeEvents(companies, fromDate, toDate) {
-  const events = [];
+  const byKey = new Map();
 
   for (const company of companies) {
+    if (!company.code || !/^\d{4,6}$/.test(company.code)) continue;
+
     for (const milestone of MILESTONES) {
       const date = addMonths(company.listedDate, milestone.months);
       if (date < fromDate || date > toDate) continue;
@@ -592,7 +624,7 @@ function makeEvents(companies, fromDate, toDate) {
         `資料來源：${company.sourceId}`
       ].filter(Boolean).join("\n");
 
-      events.push({
+      const event = {
         uid: stableUid(company, milestone),
         title,
         date,
@@ -603,17 +635,19 @@ function makeEvents(companies, fromDate, toDate) {
         milestoneLabel,
         company,
         description
-      });
+      };
+      const eventKey = `${event.market}|${company.code}|${event.milestone}|${event.date}`;
+      byKey.set(eventKey, event);
     }
   }
 
-  return events.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+  return [...byKey.values()].sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
 }
 
 function stableUid(company, milestone) {
   const hash = crypto
     .createHash("sha1")
-    .update(`${company.market}|${company.code}|${company.name}|${company.listedDate}|${milestone.id}`)
+    .update(`${company.market}|${company.code}|${company.listedDate}|${milestone.id}`)
     .digest("hex")
     .slice(0, 20);
   return `${hash}@taiwan-ipo-calendar.local`;
