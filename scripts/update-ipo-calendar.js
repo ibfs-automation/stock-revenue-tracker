@@ -63,6 +63,17 @@ const SOURCES = [
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
   {
+    id: "twse-applylisting-html",
+    market: "TWSE",
+    label: "上市",
+    type: "html",
+    urls: [
+      process.env.TWSE_APPLYLISTING_HTML_URL,
+      "https://www.twse.com.tw/rwd/zh/company/applylisting?response=html"
+    ].filter(Boolean),
+    dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
+  },
+  {
     id: "twse-applylisting-foreign",
     market: "TWSE",
     label: "上市",
@@ -269,7 +280,37 @@ async function fetchJsonFromFirstAvailable(source) {
   throw new Error(errors.join("\n"));
 }
 
+function detectDelimiter(text) {
+  const firstLine = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0] || "";
+  const candidates = [",", ";", "\t"];
+  let best = ",";
+  let bestCount = -1;
+
+  for (const delimiter of candidates) {
+    let count = 0;
+    let quoted = false;
+    for (let index = 0; index < firstLine.length; index += 1) {
+      const char = firstLine[index];
+      const next = firstLine[index + 1];
+      if (quoted && char === "\"" && next === "\"") {
+        index += 1;
+      } else if (char === "\"") {
+        quoted = !quoted;
+      } else if (!quoted && char === delimiter) {
+        count += 1;
+      }
+    }
+    if (count > bestCount) {
+      best = delimiter;
+      bestCount = count;
+    }
+  }
+
+  return best;
+}
+
 function parseCsv(text) {
+  const delimiter = detectDelimiter(text);
   const rows = [];
   let row = [];
   let value = "";
@@ -305,7 +346,7 @@ function parseCsv(text) {
 
     if (char === "\"") {
       quoted = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       pushValue();
     } else if (char === "\n") {
       pushRow();
@@ -355,10 +396,84 @@ async function fetchCsvFromFirstAvailable(source) {
   throw new Error(errors.join("\n"));
 }
 
+function decodeHtml(value) {
+  return String(value || "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function textFromHtmlCell(value) {
+  return decodeHtml(String(value || "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim());
+}
+
+function parseHtmlTables(text) {
+  const rows = [];
+  const tableMatches = [...String(text || "").matchAll(/<table[\s\S]*?<\/table>/gi)];
+  const sources = tableMatches.length ? tableMatches.map(match => match[0]) : [String(text || "")];
+
+  for (const table of sources) {
+    const rawRows = [...table.matchAll(/<tr[\s\S]*?<\/tr>/gi)]
+      .map(match => [...match[0].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => textFromHtmlCell(cell[1])))
+      .filter(row => row.some(cell => cell));
+
+    if (rawRows.length < 2) continue;
+    const headerIndex = rawRows.findIndex(row => row.some(cell => /公司代號|證券代號|股票代號/.test(cell)));
+    const headers = rawRows[headerIndex >= 0 ? headerIndex : 0];
+
+    for (const row of rawRows.slice((headerIndex >= 0 ? headerIndex : 0) + 1)) {
+      rows.push(Object.fromEntries(headers.map((header, index) => [header, row[index] || ""])));
+    }
+  }
+
+  return rows;
+}
+
+async function fetchHtmlFromFirstAvailable(source) {
+  const errors = [];
+
+  for (const url of source.urls) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "text/html, */*",
+          "User-Agent": "Mozilla/5.0 ipo-calendar-generator"
+        }
+      });
+
+      if (!response.ok) {
+        errors.push(`${url} HTTP ${response.status}`);
+        continue;
+      }
+
+      const text = await response.text();
+      const rows = parseHtmlTables(text);
+      if (!rows.length) {
+        errors.push(`${url} returned no parseable tables`);
+        continue;
+      }
+      return { url, rows };
+    } catch (error) {
+      errors.push(`${url} ${error.message}`);
+    }
+  }
+
+  throw new Error(errors.join("\n"));
+}
+
 async function fetchRowsFromFirstAvailable(source) {
-  return source.type === "csv"
-    ? fetchCsvFromFirstAvailable(source)
-    : fetchJsonFromFirstAvailable(source);
+  if (source.type === "csv") return fetchCsvFromFirstAvailable(source);
+  if (source.type === "html") return fetchHtmlFromFirstAvailable(source);
+  return fetchJsonFromFirstAvailable(source);
 }
 
 function normalizeCompany(source, row) {
@@ -413,18 +528,45 @@ async function collectCompanies() {
   return { companies: dedupeCompanies(companies), sourceReports };
 }
 
+function companyQuality(company) {
+  let score = 0;
+  if (company.code && !/^\d{1,2}$/.test(company.code)) score += 4;
+  if (company.name && company.name !== company.code) score += 4;
+  if (company.name && company.name.length <= 12) score += 2;
+  if (company.underwriter) score += 1;
+  if (company.note) score += 1;
+  if (!/^mops-/.test(company.sourceId)) score += 1;
+  return score;
+}
+
+function mergeCompany(existing, incoming) {
+  const better = companyQuality(incoming) > companyQuality(existing) ? incoming : existing;
+  const fallback = better === incoming ? existing : incoming;
+
+  return {
+    ...better,
+    code: better.code || fallback.code,
+    name: better.name && better.name !== better.code ? better.name : fallback.name,
+    applicationDate: better.applicationDate || fallback.applicationDate,
+    underwriter: better.underwriter || fallback.underwriter,
+    price: better.price || fallback.price,
+    note: better.note || fallback.note,
+    sourceId: [existing.sourceId, incoming.sourceId].filter(Boolean).join(","),
+    raw: better.raw
+  };
+}
+
 function dedupeCompanies(companies) {
-  const seen = new Set();
-  const unique = [];
+  const byKey = new Map();
 
   for (const company of companies) {
-    const key = `${company.market}|${company.code}|${company.name}|${company.listedDate}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    unique.push(company);
+    const key = company.code
+      ? `${company.market}|${company.code}|${company.listedDate}`
+      : `${company.market}|${company.name}|${company.listedDate}`;
+    byKey.set(key, byKey.has(key) ? mergeCompany(byKey.get(key), company) : company);
   }
 
-  return unique.sort((a, b) => a.listedDate.localeCompare(b.listedDate) || a.market.localeCompare(b.market));
+  return [...byKey.values()].sort((a, b) => a.listedDate.localeCompare(b.listedDate) || a.market.localeCompare(b.market));
 }
 
 function makeEvents(companies, fromDate, toDate) {
@@ -435,7 +577,10 @@ function makeEvents(companies, fromDate, toDate) {
       const date = addMonths(company.listedDate, milestone.months);
       if (date < fromDate || date > toDate) continue;
 
-      const title = `${company.name || company.code}(${company.code || "-"}) ${milestone.label}${company.marketLabel}`;
+      const milestoneLabel = company.market === "ESB"
+        ? milestone.label.replace("掛牌", "登錄")
+        : milestone.label;
+      const title = `${company.name || company.code}(${company.code || "-"}) ${milestoneLabel}${company.marketLabel}`;
       const description = [
         `市場：${company.marketLabel}`,
         `公司：${company.name || ""} ${company.code ? `(${company.code})` : ""}`.trim(),
@@ -455,7 +600,7 @@ function makeEvents(companies, fromDate, toDate) {
         market: company.market,
         marketLabel: company.marketLabel,
         milestone: milestone.id,
-        milestoneLabel: milestone.label,
+        milestoneLabel,
         company,
         description
       });
