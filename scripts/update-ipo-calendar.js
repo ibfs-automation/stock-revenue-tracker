@@ -21,6 +21,9 @@ const SOURCES = [
     market: "TWSE",
     label: "上市",
     type: "json",
+    pageUrls: [
+      "https://www.twse.com.tw/zh/listed/listed/apply-listing.html"
+    ],
     urls: [
       process.env.TWSE_APPLYLISTING_LOCAL_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingLocal"
@@ -47,6 +50,9 @@ const SOURCES = [
     market: "TWSE",
     label: "上市",
     type: "json",
+    pageUrls: [
+      "https://www.twse.com.tw/zh/listed/listed/apply-listing.html"
+    ],
     urls: [
       process.env.TWSE_APPLYLISTING_FOREIGN_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingForeign"
@@ -73,6 +79,9 @@ const SOURCES = [
     market: "TWSE",
     label: "上市",
     type: "json",
+    pageUrls: [
+      "https://www.twse.com.tw/zh/listed/listed/apply-listing.html"
+    ],
     urls: [
       process.env.TWSE_NEWLISTING_URL,
       "https://openapi.twse.com.tw/v1/company/newlisting"
@@ -99,6 +108,9 @@ const SOURCES = [
     market: "TWSE",
     label: "上市",
     type: "html",
+    pageUrls: [
+      "https://www.twse.com.tw/zh/listed/listed/apply-listing.html"
+    ],
     urls: [
       process.env.TWSE_NEWLISTING_HTML_URL,
       "https://www.twse.com.tw/company/newlisting?response=html&yy="
@@ -110,6 +122,9 @@ const SOURCES = [
     market: "TPEX",
     label: "上櫃",
     type: "auto",
+    pageUrls: [
+      "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company.html"
+    ],
     urls: [
       process.env.TPEX_MAINBOARD_APPLICANTS_CSV_URL,
       "https://www.tpex.org.tw/www/zh-tw/mainboard/applying/status/company?response=csv&charset=utf-8",
@@ -139,6 +154,9 @@ const SOURCES = [
     market: "ESB",
     label: "興櫃",
     type: "csv",
+    pageUrls: [
+      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html"
+    ],
     urls: [
       process.env.TPEX_ESB_IPO_CSV_URL,
       "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
@@ -369,6 +387,98 @@ function objectRows(payload) {
   return [];
 }
 
+async function decodeResponseText(response) {
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const contentType = response.headers.get("content-type") || "";
+  const charset = (contentType.match(/charset=([^;]+)/i) || [])[1] || "";
+
+  const decode = encoding => {
+    try {
+      return new TextDecoder(encoding).decode(buffer);
+    } catch {
+      return buffer.toString("utf8");
+    }
+  };
+
+  if (/big5|ms950|950/i.test(charset)) return decode("big5");
+  if (/utf-?8/i.test(charset)) return decode("utf-8");
+
+  const utf8 = decode("utf-8");
+  if (utf8.includes("\uFFFD") || (!/[公司股票登錄上市上櫃]/.test(utf8) && buffer.length > 0)) {
+    const big5 = decode("big5");
+    if (/[公司股票登錄上市上櫃]/.test(big5)) return big5;
+  }
+
+  return utf8;
+}
+
+function uniqueValues(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function pageDataCandidates(html, pageUrl) {
+  const candidates = [];
+  const base = new URL(pageUrl);
+  const text = String(html || "");
+
+  for (const match of text.matchAll(/(?:href|src|action|data-url|url)=["']([^"']+)["']/gi)) {
+    try {
+      candidates.push(new URL(decodeHtml(match[1]), base).href);
+    } catch {
+      // Ignore non-URL attribute values.
+    }
+  }
+
+  for (const match of text.matchAll(/["']([^"']*(?:response=|openapi|\.csv|\.json|download|storage)[^"']*)["']/gi)) {
+    try {
+      candidates.push(new URL(decodeHtml(match[1]), base).href);
+    } catch {
+      // Ignore script string values that are not URLs.
+    }
+  }
+
+  const withoutHash = pageUrl.replace(/#.*/, "");
+  const queryJoin = withoutHash.includes("?") ? "&" : "?";
+  candidates.push(`${withoutHash}${queryJoin}response=json`);
+  candidates.push(`${withoutHash}${queryJoin}response=csv`);
+  candidates.push(`${withoutHash}${queryJoin}response=csv&charset=utf-8`);
+
+  if (withoutHash.includes("/zh-tw/")) {
+    const wwwUrl = withoutHash.replace("/zh-tw/", "/www/zh-tw/");
+    const wwwJoin = wwwUrl.includes("?") ? "&" : "?";
+    candidates.push(`${wwwUrl}${wwwJoin}response=json`);
+    candidates.push(`${wwwUrl}${wwwJoin}response=csv`);
+    candidates.push(`${wwwUrl}${wwwJoin}response=csv&charset=utf-8`);
+  }
+
+  return uniqueValues(candidates).filter(url => (
+    /response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|storage/i.test(url)
+  ));
+}
+
+async function discoveredSourceUrls(source) {
+  const candidates = [];
+
+  for (const pageUrl of source.pageUrls || []) {
+    try {
+      const response = await fetch(pageUrl, {
+        headers: {
+          "Accept": "text/html, */*",
+          "User-Agent": "Mozilla/5.0 ipo-calendar-generator"
+        }
+      });
+      if (!response.ok) continue;
+      const html = await decodeResponseText(response);
+      candidates.push(...pageDataCandidates(html, pageUrl));
+    } catch {
+      // Discovery is best-effort; explicit source URLs still run below.
+    }
+  }
+
+  candidates.push(...(source.urls || []));
+  return uniqueValues(candidates);
+}
+
 function deepObjectRows(value, rows = []) {
   if (Array.isArray(value)) {
     if (value.length && value.every(item => item && typeof item === "object" && !Array.isArray(item))) {
@@ -416,8 +526,9 @@ function parseEmbeddedJsonRows(text) {
 
 async function fetchJsonFromFirstAvailable(source) {
   const errors = [];
+  const urls = await discoveredSourceUrls(source);
 
-  for (const url of source.urls) {
+  for (const url of urls) {
     try {
       const response = await fetch(url, {
         headers: {
@@ -431,7 +542,7 @@ async function fetchJsonFromFirstAvailable(source) {
         continue;
       }
 
-      const text = await response.text();
+      const text = await decodeResponseText(response);
       const payload = JSON.parse(text.replace(/^\uFEFF/, ""));
       return { url, rows: objectRows(payload) };
     } catch (error) {
@@ -444,8 +555,9 @@ async function fetchJsonFromFirstAvailable(source) {
 
 async function fetchAutoFromFirstAvailable(source) {
   const errors = [];
+  const urls = await discoveredSourceUrls(source);
 
-  for (const url of source.urls) {
+  for (const url of urls) {
     try {
       const response = await fetch(url, {
         headers: {
@@ -459,7 +571,7 @@ async function fetchAutoFromFirstAvailable(source) {
         continue;
       }
 
-      const text = await response.text();
+      const text = await decodeResponseText(response);
       const contentType = response.headers.get("content-type") || "";
       const trimmed = text.replace(/^\uFEFF/, "").trim();
       let rows = [];
@@ -584,8 +696,9 @@ function parseCsv(text) {
 
 async function fetchCsvFromFirstAvailable(source) {
   const errors = [];
+  const urls = await discoveredSourceUrls(source);
 
-  for (const url of source.urls) {
+  for (const url of urls) {
     try {
       const response = await fetch(url, {
         headers: {
@@ -599,7 +712,7 @@ async function fetchCsvFromFirstAvailable(source) {
         continue;
       }
 
-      const text = await response.text();
+      const text = await decodeResponseText(response);
       if (/^\s*</.test(text)) {
         errors.push(`${url} returned HTML instead of CSV`);
         continue;
@@ -658,8 +771,9 @@ function parseHtmlTables(text) {
 
 async function fetchHtmlFromFirstAvailable(source) {
   const errors = [];
+  const urls = await discoveredSourceUrls(source);
 
-  for (const url of source.urls) {
+  for (const url of urls) {
     try {
       const response = await fetch(url, {
         headers: {
@@ -673,7 +787,7 @@ async function fetchHtmlFromFirstAvailable(source) {
         continue;
       }
 
-      const text = await response.text();
+      const text = await decodeResponseText(response);
       if (!/^\s*</.test(text)) {
         try {
           return { url, rows: objectRows(JSON.parse(text.replace(/^\uFEFF/, ""))) };
