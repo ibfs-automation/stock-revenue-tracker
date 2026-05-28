@@ -20,35 +20,10 @@ const SOURCES = [
     id: "twse-applylisting-local",
     market: "TWSE",
     label: "上市",
-    type: "json",
+    type: "auto",
     urls: [
-      process.env.TWSE_APPLYLISTING_LOCAL_URL,
-      "https://openapi.twse.com.tw/v1/company/applylistingLocal",
-      "https://openapi.twse.com.tw/v1/company/newlisting",
-      "https://www.twse.com.tw/rwd/zh/company/applylisting?response=json&type=1"
-    ].filter(Boolean),
-    dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
-  },
-  {
-    id: "twse-applylisting-html",
-    market: "TWSE",
-    label: "上市",
-    type: "html",
-    urls: [
-      process.env.TWSE_APPLYLISTING_HTML_URL,
-      "https://www.twse.com.tw/rwd/zh/company/applylisting?response=html"
-    ].filter(Boolean),
-    dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
-  },
-  {
-    id: "twse-applylisting-foreign",
-    market: "TWSE",
-    label: "上市",
-    type: "json",
-    urls: [
-      process.env.TWSE_APPLYLISTING_FOREIGN_URL,
-      "https://openapi.twse.com.tw/v1/company/applylistingForeign",
-      "https://www.twse.com.tw/rwd/zh/company/applylisting?response=json&type=2"
+      process.env.TWSE_APPLY_LISTING_URL,
+      "https://www.twse.com.tw/zh/listed/listed/apply-listing.html"
     ].filter(Boolean),
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
@@ -56,15 +31,10 @@ const SOURCES = [
     id: "tpex-mainboard-applicants",
     market: "TPEX",
     label: "上櫃",
-    type: "html",
+    type: "auto",
     urls: [
-      process.env.TPEX_MAINBOARD_APPLICANTS_HTML_URL,
-      "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company.html",
       process.env.TPEX_MAINBOARD_APPLICANTS_URL,
-      "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies",
-      "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_applicant_companies",
-      "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_applying_status_company",
-      "https://www.tpex.org.tw/www/zh-tw/mainboard/applying/status/company?response=json"
+      "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company.html"
     ].filter(Boolean),
     dateKeys: ["股票上櫃買賣日期", "上櫃買賣日期", "櫃買賣日期", "listedDate", "ListingDate"]
   },
@@ -72,14 +42,10 @@ const SOURCES = [
     id: "tpex-esb-ipo",
     market: "ESB",
     label: "興櫃",
-    type: "html",
+    type: "auto",
     urls: [
-      process.env.TPEX_ESB_IPO_HTML_URL,
-      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html",
       process.env.TPEX_ESB_IPO_URL,
-      "https://www.tpex.org.tw/openapi/v1/tpex_esb_listed_ipo",
-      "https://www.tpex.org.tw/openapi/v1/tpex_esb_latest_listed_companies",
-      "https://www.tpex.org.tw/www/zh-tw/esb/listed/ipo?response=json"
+      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html"
     ].filter(Boolean),
     dateKeys: ["登錄日期", "股票開始櫃檯買賣日期", "興櫃登錄日期", "listedDate", "registrationDate", "ListingDate"]
   }
@@ -99,6 +65,12 @@ const MILESTONES = [
   { id: "one-month", label: "掛牌一個月", months: 1 },
   { id: "two-month", label: "掛牌兩個月", months: 2 }
 ];
+
+const MARKET_MILESTONES = {
+  TWSE: MILESTONES,
+  TPEX: MILESTONES,
+  ESB: MILESTONES.filter(milestone => milestone.id === "first-day")
+};
 
 function parseArgs(argv) {
   const args = {};
@@ -135,6 +107,14 @@ function addMonths(dateKey, months) {
   const lastDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
   date.setUTCDate(Math.min(day, lastDay));
   return formatIsoDate(date);
+}
+
+function moveWeekendToMonday(dateKey) {
+  const date = parseIsoDate(dateKey);
+  const day = date.getUTCDay();
+  if (day === 6) return addDays(dateKey, 2);
+  if (day === 0) return addDays(dateKey, 1);
+  return dateKey;
 }
 
 function parseIsoDate(dateKey) {
@@ -274,6 +254,51 @@ function objectRows(payload) {
   return [];
 }
 
+function deepObjectRows(value, rows = []) {
+  if (Array.isArray(value)) {
+    if (value.length && value.every(item => item && typeof item === "object" && !Array.isArray(item))) {
+      rows.push(...value);
+    }
+    for (const item of value) deepObjectRows(item, rows);
+  } else if (value && typeof value === "object") {
+    if (Array.isArray(value.data) && Array.isArray(value.fields)) {
+      rows.push(...objectRows(value));
+    }
+    for (const item of Object.values(value)) deepObjectRows(item, rows);
+  }
+  return rows;
+}
+
+function parseEmbeddedJsonRows(text) {
+  const rows = [];
+  const scriptMatches = [...String(text || "").matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
+
+  for (const match of scriptMatches) {
+    const body = decodeHtml(match[1] || "").trim();
+    if (!body || !/[{\[]/.test(body)) continue;
+
+    const candidates = [];
+    if (/^\s*[{\[]/.test(body)) candidates.push(body);
+    for (const jsonMatch of body.matchAll(/JSON\.parse\((["'`])([\s\S]*?)\1\)/g)) {
+      try {
+        candidates.push(JSON.parse(`"${jsonMatch[2].replace(/"/g, '\\"')}"`));
+      } catch {
+        candidates.push(jsonMatch[2]);
+      }
+    }
+
+    for (const candidate of candidates) {
+      try {
+        rows.push(...deepObjectRows(JSON.parse(candidate)));
+      } catch {
+        // Ignore script bodies that are not plain JSON payloads.
+      }
+    }
+  }
+
+  return rows;
+}
+
 async function fetchJsonFromFirstAvailable(source) {
   const errors = [];
 
@@ -294,6 +319,62 @@ async function fetchJsonFromFirstAvailable(source) {
       const text = await response.text();
       const payload = JSON.parse(text.replace(/^\uFEFF/, ""));
       return { url, rows: objectRows(payload) };
+    } catch (error) {
+      errors.push(`${url} ${error.message}`);
+    }
+  }
+
+  throw new Error(errors.join("\n"));
+}
+
+async function fetchAutoFromFirstAvailable(source) {
+  const errors = [];
+
+  for (const url of source.urls) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "text/html, application/json, text/csv, text/plain, */*",
+          "User-Agent": "Mozilla/5.0 ipo-calendar-generator"
+        }
+      });
+
+      if (!response.ok) {
+        errors.push(`${url} HTTP ${response.status}`);
+        continue;
+      }
+
+      const text = await response.text();
+      const contentType = response.headers.get("content-type") || "";
+      const trimmed = text.replace(/^\uFEFF/, "").trim();
+      let rows = [];
+
+      if (/json/i.test(contentType) || /^[{[]/.test(trimmed)) {
+        try {
+          rows = objectRows(JSON.parse(trimmed));
+        } catch {
+          rows = [];
+        }
+      }
+
+      if (!rows.length && !/^\s*</.test(trimmed)) {
+        rows = parseCsv(trimmed);
+      }
+
+      if (!rows.length) {
+        rows = parseHtmlTables(text);
+      }
+
+      if (!rows.length) {
+        rows = parseEmbeddedJsonRows(text);
+      }
+
+      if (!rows.length) {
+        errors.push(`${url} returned no parseable rows`);
+        continue;
+      }
+
+      return { url, rows };
     } catch (error) {
       errors.push(`${url} ${error.message}`);
     }
@@ -501,6 +582,7 @@ async function fetchHtmlFromFirstAvailable(source) {
 }
 
 async function fetchRowsFromFirstAvailable(source) {
+  if (source.type === "auto") return fetchAutoFromFirstAvailable(source);
   if (source.type === "csv") return fetchCsvFromFirstAvailable(source);
   if (source.type === "html") return fetchHtmlFromFirstAvailable(source);
   return fetchJsonFromFirstAvailable(source);
@@ -604,9 +686,11 @@ function makeEvents(companies, fromDate, toDate) {
 
   for (const company of companies) {
     if (!company.code || !/^\d{4,6}$/.test(company.code)) continue;
+    const milestones = MARKET_MILESTONES[company.market] || MILESTONES;
 
-    for (const milestone of MILESTONES) {
-      const date = addMonths(company.listedDate, milestone.months);
+    for (const milestone of milestones) {
+      const rawDate = addMonths(company.listedDate, milestone.months);
+      const date = milestone.months > 0 ? moveWeekendToMonday(rawDate) : rawDate;
       if (date < fromDate || date > toDate) continue;
 
       const milestoneLabel = company.market === "ESB"
