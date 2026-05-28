@@ -17,6 +17,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install browser scraper
+        run: |
+          npm install
+          npm install playwright@^1.52.0
+          npx playwright install --with-deps chromium
+
       - name: Sync IPO calendar to Google Calendar
         env:
           GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
