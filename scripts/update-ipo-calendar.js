@@ -623,6 +623,19 @@ function rowsFromRawText(source, url, text) {
   }];
 }
 
+function responseLooksLikeData(url, contentType) {
+  const type = String(contentType || "").toLowerCase();
+  if (/image\/|font\/|text\/css|javascript|application\/octet-stream|video\/|audio\//i.test(type)) {
+    return false;
+  }
+  if (/\.(?:png|jpe?g|gif|webp|svg|ico|css|js|woff2?|ttf|otf|pdf)(?:$|[?#])/i.test(url)) {
+    return false;
+  }
+
+  return /json|csv|text\/plain|html/i.test(type)
+    || /response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|api/i.test(url);
+}
+
 async function fetchRowsFromDetailLinks(source, pageUrl, html) {
   const rows = [];
   const urlReports = [];
@@ -704,7 +717,7 @@ function parseRowsFromText(source, url, text, contentType = "") {
     parsers.push(() => objectRows(JSON.parse(trimmed)));
   }
 
-  if (source.type === "csv" || source.type === "auto" || /csv|text\/plain/i.test(contentType) || /\.csv(?:$|[?#])|response=csv/i.test(url)) {
+  if (source.type === "csv" || /csv|text\/plain/i.test(contentType) || /\.csv(?:$|[?#])|response=csv/i.test(url)) {
     parsers.push(() => /^\s*</.test(trimmed) ? [] : parseCsv(trimmed));
   }
 
@@ -785,8 +798,7 @@ async function browserRowsForSource(source) {
       page.on("response", response => {
         const url = response.url();
         const contentType = response.headers()["content-type"] || "";
-        if (!/response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|storage|api/i.test(url)
-          && !/json|csv|text\/plain/i.test(contentType)) {
+        if (!responseLooksLikeData(url, contentType)) {
           return;
         }
 
@@ -911,11 +923,37 @@ async function browserRowsForSource(source) {
         const detailRows = [];
         for (const detailUrl of matchingDetailLinks) {
           const detailPage = await browser.newPage({ locale: "zh-TW", timezoneId: TIME_ZONE });
+          const detailNetworkRows = [];
+          const detailResponsePromises = [];
+          detailPage.on("response", response => {
+            const url = response.url();
+            const contentType = response.headers()["content-type"] || "";
+            if (!responseLooksLikeData(url, contentType)) return;
+
+            const task = response.body()
+              .then(buffer => {
+                const fakeResponse = {
+                  headers: { get: name => name.toLowerCase() === "content-type" ? contentType : "" },
+                  arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+                };
+                return decodeResponseText(fakeResponse);
+              })
+              .then(text => {
+                const parsed = parseRowsFromText(source, url, text, contentType);
+                if (parsed.length) detailNetworkRows.push(...parsed);
+              })
+              .catch(error => {
+                reports.push({ url: `browser-detail-response:${url}`, rows: 0, error: error.message });
+              });
+            detailResponsePromises.push(task);
+          });
           try {
             await detailPage.goto(detailUrl, { waitUntil: "networkidle", timeout: 60000 });
             await detailPage.waitForTimeout(800);
+            await Promise.allSettled(detailResponsePromises);
             const detailText = await detailPage.evaluate(() => document.body ? (document.body.innerText || document.body.textContent || "") : "");
             detailRows.push(...rowsFromRawText(source, detailUrl, detailText));
+            detailRows.push(...detailNetworkRows);
             const detailPageRows = await detailPage.evaluate(() => {
               const text = element => (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
               const parsed = [];
@@ -1282,11 +1320,14 @@ async function collectCompanies() {
         .map(row => normalizeRowForSource(source, row))
         .map(row => normalizeCompany(source, row))
         .filter(Boolean);
-      companies.push(...normalized);
       const codes = [...new Set(normalized.map(company => company.code).filter(Boolean))].sort();
+      if (!normalized.length) {
+        throw new Error(`No rows contained a valid code, name, and target date. Parsed rows: ${result.rows.length}.`);
+      }
       if (source.market === "ESB" && normalized.length > 80) {
         throw new Error(`ESB source produced ${normalized.length} rows; this looks like a full company list, not the recent IPO page.`);
       }
+      companies.push(...normalized);
       sourceReports.push({
         id: source.id,
         status: "ok",
