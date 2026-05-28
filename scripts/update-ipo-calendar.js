@@ -20,10 +20,32 @@ const SOURCES = [
     id: "twse-applylisting-local",
     market: "TWSE",
     label: "上市",
-    type: "auto",
+    type: "json",
     urls: [
-      process.env.TWSE_APPLY_LISTING_URL,
-      "https://www.twse.com.tw/zh/listed/listed/apply-listing.html"
+      process.env.TWSE_APPLYLISTING_LOCAL_URL,
+      "https://openapi.twse.com.tw/v1/company/applylistingLocal"
+    ].filter(Boolean),
+    dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
+  },
+  {
+    id: "twse-applylisting-foreign",
+    market: "TWSE",
+    label: "上市",
+    type: "json",
+    urls: [
+      process.env.TWSE_APPLYLISTING_FOREIGN_URL,
+      "https://openapi.twse.com.tw/v1/company/applylistingForeign"
+    ].filter(Boolean),
+    dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
+  },
+  {
+    id: "twse-newlisting",
+    market: "TWSE",
+    label: "上市",
+    type: "json",
+    urls: [
+      process.env.TWSE_NEWLISTING_URL,
+      "https://openapi.twse.com.tw/v1/company/newlisting"
     ].filter(Boolean),
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
@@ -31,10 +53,10 @@ const SOURCES = [
     id: "tpex-mainboard-applicants",
     market: "TPEX",
     label: "上櫃",
-    type: "auto",
+    type: "json",
     urls: [
       process.env.TPEX_MAINBOARD_APPLICANTS_URL,
-      "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company.html"
+      "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
     ].filter(Boolean),
     dateKeys: ["股票上櫃買賣日期", "上櫃買賣日期", "櫃買賣日期", "listedDate", "ListingDate"]
   },
@@ -42,12 +64,12 @@ const SOURCES = [
     id: "tpex-esb-ipo",
     market: "ESB",
     label: "興櫃",
-    type: "auto",
+    type: "json",
     urls: [
       process.env.TPEX_ESB_IPO_URL,
-      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html"
+      "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_R"
     ].filter(Boolean),
-    dateKeys: ["登錄日期", "股票開始櫃檯買賣日期", "興櫃登錄日期", "listedDate", "registrationDate", "ListingDate"]
+    dateKeys: ["登錄日期", "興櫃日期", "股票開始櫃檯買賣日期", "興櫃登錄日期", "listedDate", "registrationDate", "ListingDate"]
   }
 ];
 
