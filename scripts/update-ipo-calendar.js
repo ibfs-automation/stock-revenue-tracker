@@ -648,6 +648,39 @@ async function browserRowsForSource(source) {
   try {
     for (const pageUrl of source.pageUrls || []) {
       const page = await browser.newPage({ locale: "zh-TW", timezoneId: TIME_ZONE });
+      const networkRows = [];
+      const networkReports = [];
+      const responsePromises = [];
+
+      page.on("response", response => {
+        const url = response.url();
+        const contentType = response.headers()["content-type"] || "";
+        if (!/response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|storage|api/i.test(url)
+          && !/json|csv|text\/plain/i.test(contentType)) {
+          return;
+        }
+
+        const task = response.body()
+          .then(buffer => {
+            const fakeResponse = {
+              headers: { get: name => name.toLowerCase() === "content-type" ? contentType : "" },
+              arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+            };
+            return decodeResponseText(fakeResponse);
+          })
+          .then(text => {
+            const parsed = parseRowsFromText(source, url, text, contentType);
+            if (parsed.length) {
+              networkRows.push(...parsed);
+              networkReports.push({ url: `browser-response:${url}`, rows: parsed.length });
+            }
+          })
+          .catch(error => {
+            networkReports.push({ url: `browser-response:${url}`, rows: 0, error: error.message });
+          });
+        responsePromises.push(task);
+      });
+
       try {
         await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60000 });
         await page.waitForTimeout(1500);
@@ -683,6 +716,8 @@ async function browserRowsForSource(source) {
           await page.waitForTimeout(1000);
         }
 
+        await Promise.allSettled(responsePromises);
+
         const pageRows = await page.evaluate(() => {
           const text = element => (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
           const parsed = [];
@@ -715,8 +750,9 @@ async function browserRowsForSource(source) {
           return parsed;
         });
 
-        rows.push(...pageRows);
-        reports.push({ url: `browser:${pageUrl}`, rows: pageRows.length });
+        rows.push(...networkRows, ...pageRows);
+        reports.push(...networkReports);
+        reports.push({ url: `browser-dom:${pageUrl}`, rows: pageRows.length });
       } catch (error) {
         reports.push({ url: `browser:${pageUrl}`, rows: 0, error: error.message });
       } finally {
