@@ -25,6 +25,21 @@ const SOURCES = [
       process.env.TWSE_APPLYLISTING_LOCAL_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingLocal"
     ].filter(Boolean),
+    fieldOrder: [
+      "索引",
+      "公司代號",
+      "公司簡稱",
+      "申請日期",
+      "董事長",
+      "申請時股本(仟元)",
+      "上市審議委員會審議日期",
+      "交易所董事會通過上市日期",
+      "上市契約報請主管機關備查日期",
+      "股票上市買賣日期",
+      "承銷商",
+      "承銷價",
+      "備註"
+    ],
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
   {
@@ -36,6 +51,21 @@ const SOURCES = [
       process.env.TWSE_APPLYLISTING_FOREIGN_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingForeign"
     ].filter(Boolean),
+    fieldOrder: [
+      "索引",
+      "公司代號",
+      "公司簡稱",
+      "申請日期",
+      "董事長",
+      "申請時股本(仟元)",
+      "上市審議委員會審議日期",
+      "交易所董事會通過上市日期",
+      "上市契約報請主管機關備查日期",
+      "股票上市買賣日期",
+      "承銷商",
+      "承銷價",
+      "備註"
+    ],
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
   {
@@ -47,6 +77,21 @@ const SOURCES = [
       process.env.TWSE_NEWLISTING_URL,
       "https://openapi.twse.com.tw/v1/company/newlisting"
     ].filter(Boolean),
+    fieldOrder: [
+      "公司代號",
+      "公司簡稱",
+      "申請日期",
+      "董事長",
+      "申請時股本(仟元)",
+      "上市審議委員會審議日期",
+      "交易所董事會通過上市日期",
+      "上市契約報請主管機關備查日期",
+      "證期局核准上市契約日期",
+      "股票上市買賣日期",
+      "承銷商",
+      "承銷價",
+      "備註"
+    ],
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
   {
@@ -58,6 +103,20 @@ const SOURCES = [
       process.env.TPEX_MAINBOARD_APPLICANTS_URL,
       "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
     ].filter(Boolean),
+    fieldOrder: [
+      "申請日期",
+      "股票代號",
+      "公司名稱",
+      "董事長",
+      "申請時股本",
+      "上櫃審議委員會審議日期",
+      "櫃買董事會通過上櫃日期",
+      "櫃買同意上櫃契約日期或證期局核准上櫃契約日期",
+      "股票上櫃買賣日期",
+      "主辦承銷商",
+      "承銷價",
+      "備註"
+    ],
     dateKeys: ["股票上櫃買賣日期", "上櫃買賣日期", "櫃買賣日期", "listedDate", "ListingDate"]
   },
   {
@@ -69,7 +128,24 @@ const SOURCES = [
       process.env.TPEX_ESB_IPO_URL,
       "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_R"
     ].filter(Boolean),
-    dateKeys: ["登錄日期", "興櫃日期", "股票開始櫃檯買賣日期", "興櫃登錄日期", "listedDate", "registrationDate", "ListingDate"]
+    fieldOrder: [
+      "出表日期",
+      "公司代號",
+      "公司名稱",
+      "公司簡稱",
+      "產業別",
+      "住址",
+      "營利事業統一編號",
+      "董事長",
+      "總經理",
+      "發言人",
+      "發言人職稱",
+      "代理發言人",
+      "總機電話",
+      "成立日期",
+      "興櫃日期"
+    ],
+    dateKeys: ["登錄日期", "興櫃日期", "興櫃掛牌日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "興櫃登錄日期", "listedDate", "registrationDate", "ListingDate"]
   }
 ];
 
@@ -196,6 +272,26 @@ function valueLooksLikeDateKey(key) {
   return /日期|date|年月日|time/i.test(String(key || ""));
 }
 
+function valueLooksLikeNameKey(key) {
+  return /公司(?:簡稱|名稱)|證券(?:簡稱|名稱)|股票(?:簡稱|名稱)|簡稱$|^名稱$|company|name/i.test(String(key || ""));
+}
+
+function normalizeRowForSource(source, row) {
+  if (Array.isArray(row)) {
+    return Object.fromEntries((source.fieldOrder || []).map((field, index) => [field, row[index] || ""]));
+  }
+
+  if (row && typeof row === "object") {
+    const keys = Object.keys(row);
+    const numericKeys = keys.filter(key => /^\d+$/.test(key));
+    if (numericKeys.length && numericKeys.length === keys.length && source.fieldOrder) {
+      return Object.fromEntries(source.fieldOrder.map((field, index) => [field, row[index] || row[String(index)] || ""]));
+    }
+  }
+
+  return row;
+}
+
 function normalizeStockCode(row) {
   const direct = extractStockCode(getValue(row, KEY_ALIASES.code));
   if (direct) return direct;
@@ -213,9 +309,8 @@ function normalizeCompanyName(row, code) {
   const direct = getValue(row, KEY_ALIASES.name);
   const candidates = [
     direct,
-    getValue(row, KEY_ALIASES.code),
     ...Object.entries(row || {})
-      .filter(([key]) => !valueLooksLikeDateKey(key))
+      .filter(([key]) => valueLooksLikeNameKey(key) && !valueLooksLikeDateKey(key))
       .map(([, value]) => String(value || ""))
   ];
 
@@ -643,7 +738,10 @@ async function collectCompanies() {
   for (const source of SOURCES) {
     try {
       const result = await fetchRowsFromFirstAvailable(source);
-      const normalized = result.rows.map(row => normalizeCompany(source, row)).filter(Boolean);
+      const normalized = result.rows
+        .map(row => normalizeRowForSource(source, row))
+        .map(row => normalizeCompany(source, row))
+        .filter(Boolean);
       companies.push(...normalized);
       sourceReports.push({
         id: source.id,
