@@ -16,6 +16,8 @@ const SYNC_TAG_VALUE = "twse-tpex-esb";
 const TOKEN_SCOPE = "https://www.googleapis.com/auth/calendar";
 const DEFAULT_PAST_DAYS = Number(process.env.IPO_CALENDAR_PAST_DAYS || 120);
 const DEFAULT_FUTURE_DAYS = Number(process.env.IPO_CALENDAR_FUTURE_DAYS || 180);
+const WRITE_DELAY_MS = Number(process.env.GOOGLE_CALENDAR_WRITE_DELAY_MS || 750);
+const MAX_WRITE_RETRIES = Number(process.env.GOOGLE_CALENDAR_MAX_WRITE_RETRIES || 6);
 
 function parseArgs(argv) {
   const args = {};
@@ -103,6 +105,32 @@ async function googleRequest(token, method, url, body) {
   return payload;
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isRateLimitError(error) {
+  if (!error || (error.status !== 403 && error.status !== 429)) return false;
+  const errors = error.payload && error.payload.error && error.payload.error.errors;
+  if (!Array.isArray(errors)) return /rate/i.test(String(error.message || ""));
+  return errors.some(item => /rateLimitExceeded|userRateLimitExceeded|quotaExceeded/i.test(String(item.reason || item.message || "")));
+}
+
+async function googleWriteWithRetry(operation) {
+  for (let attempt = 0; attempt <= MAX_WRITE_RETRIES; attempt += 1) {
+    try {
+      const result = await operation();
+      if (WRITE_DELAY_MS > 0) await sleep(WRITE_DELAY_MS);
+      return result;
+    } catch (error) {
+      if (!isRateLimitError(error) || attempt === MAX_WRITE_RETRIES) throw error;
+      const waitMs = Math.min(60000, WRITE_DELAY_MS + (2 ** attempt) * 3000);
+      console.warn(`Google Calendar rate limit hit; waiting ${Math.round(waitMs / 1000)}s before retry ${attempt + 1}/${MAX_WRITE_RETRIES}.`);
+      await sleep(waitMs);
+    }
+  }
+}
+
 function calendarEventId(event) {
   return "ipo" + crypto.createHash("sha1").update(event.uid).digest("hex");
 }
@@ -136,6 +164,24 @@ function toGoogleEvent(event) {
   };
 }
 
+function existingPrivateProperties(item) {
+  return (item.extendedProperties && item.extendedProperties.private) || {};
+}
+
+function sameGoogleEvent(existing, desired) {
+  const props = existingPrivateProperties(existing);
+  return existing.summary === desired.summary
+    && (existing.description || "") === (desired.description || "")
+    && existing.colorId === desired.colorId
+    && existing.transparency === desired.transparency
+    && existing.start && existing.start.date === desired.start.date
+    && existing.end && existing.end.date === desired.end.date
+    && props[SYNC_TAG_KEY] === SYNC_TAG_VALUE
+    && props.ipoUid === desired.extendedProperties.private.ipoUid
+    && props.ipoMarket === desired.extendedProperties.private.ipoMarket
+    && props.ipoMilestone === desired.extendedProperties.private.ipoMilestone;
+}
+
 async function listExistingEvents(token, calendarId, fromDate, toDate) {
   const items = [];
   let pageToken = "";
@@ -164,24 +210,28 @@ async function listExistingEvents(token, calendarId, fromDate, toDate) {
   return items;
 }
 
-async function upsertEvent(token, calendarId, event) {
+async function upsertEvent(token, calendarId, event, existingEvent) {
   const body = toGoogleEvent(event);
   const id = body.id;
   const base = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
 
+  if (existingEvent && sameGoogleEvent(existingEvent, body)) {
+    return "skipped";
+  }
+
   try {
-    await googleRequest(token, "PUT", `${base}/${encodeURIComponent(id)}`, body);
+    await googleWriteWithRetry(() => googleRequest(token, "PUT", `${base}/${encodeURIComponent(id)}`, body));
     return "updated";
   } catch (error) {
     if (error.status !== 404) throw error;
   }
 
   try {
-    await googleRequest(token, "POST", base, body);
+    await googleWriteWithRetry(() => googleRequest(token, "POST", base, body));
     return "created";
   } catch (error) {
     if (error.status !== 409) throw error;
-    await googleRequest(token, "PUT", `${base}/${encodeURIComponent(id)}`, body);
+    await googleWriteWithRetry(() => googleRequest(token, "PUT", `${base}/${encodeURIComponent(id)}`, body));
     return "updated";
   }
 }
@@ -189,7 +239,7 @@ async function upsertEvent(token, calendarId, event) {
 async function deleteEvent(token, calendarId, eventId) {
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
   try {
-    await googleRequest(token, "DELETE", url);
+    await googleWriteWithRetry(() => googleRequest(token, "DELETE", url));
     return true;
   } catch (error) {
     if (error.status === 404 || error.status === 410) return false;
@@ -220,11 +270,12 @@ async function main() {
   const serviceAccount = await readServiceAccount();
   const token = await getAccessToken(serviceAccount);
   const existing = await listExistingEvents(token, calendarId, fromDate, toDate);
+  const existingById = new Map(existing.map(item => [item.id, item]));
   const desiredIds = new Set(events.map(calendarEventId));
 
-  const stats = { created: 0, updated: 0, deleted: 0 };
+  const stats = { created: 0, updated: 0, skipped: 0, deleted: 0 };
   for (const event of events) {
-    const result = await upsertEvent(token, calendarId, event);
+    const result = await upsertEvent(token, calendarId, event, existingById.get(calendarEventId(event)));
     stats[result] += 1;
   }
 
@@ -235,7 +286,7 @@ async function main() {
     }
   }
 
-  console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.deleted} deleted.`);
+  console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} unchanged, ${stats.deleted} deleted.`);
   console.log(`Events: ${events.length}. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
 
   const failed = sourceReports.filter(report => report.status !== "ok");
