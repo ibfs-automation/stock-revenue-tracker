@@ -164,6 +164,13 @@ function toGoogleEvent(event) {
   };
 }
 
+function monthSummary(events, monthPrefix) {
+  return events
+    .filter(event => event.date.startsWith(monthPrefix))
+    .map(event => `${event.date} ${event.title}`)
+    .sort();
+}
+
 function existingPrivateProperties(item) {
   return (item.extendedProperties && item.extendedProperties.private) || {};
 }
@@ -269,6 +276,11 @@ async function main() {
     for (const report of sourceReports) {
       console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
       if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
+      if (report.urlReports && report.urlReports.length) {
+        for (const item of report.urlReports.filter(item => item.rows > 0).slice(0, 8)) {
+          console.log(`  used: ${item.rows} rows from ${item.url}`);
+        }
+      }
       if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
       if (report.message) console.log(`  ${report.message}`);
     }
@@ -281,6 +293,11 @@ async function main() {
     for (const report of sourceReports) {
       console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
       if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
+      if (report.urlReports && report.urlReports.length) {
+        for (const item of report.urlReports.filter(item => item.rows > 0).slice(0, 8)) {
+          console.log(`  used: ${item.rows} rows from ${item.url}`);
+        }
+      }
       if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
       if (report.message) console.log(`  ${report.message}`);
     }
@@ -316,11 +333,21 @@ async function main() {
 
   console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} unchanged, ${stats.deleted} deleted.`);
   console.log(`Events: ${events.length}. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
+  const currentMonth = today.slice(0, 7);
+  const summary = monthSummary(events, currentMonth);
+  console.log(`Event summary for ${currentMonth}:`);
+  for (const item of summary.slice(0, 160)) console.log(`  ${item}`);
+  if (summary.length > 160) console.log(`  ... +${summary.length - 160} more`);
 
   console.log("Source reports:");
   for (const report of sourceReports) {
     console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
     if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
+    if (report.urlReports && report.urlReports.length) {
+      for (const item of report.urlReports.filter(item => item.rows > 0).slice(0, 8)) {
+        console.log(`  used: ${item.rows} rows from ${item.url}`);
+      }
+    }
     if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
     if (report.message) console.log(`  ${report.message}`);
   }
@@ -336,4 +363,3 @@ if (require.main === module) {
     process.exitCode = 1;
   });
 }
-
