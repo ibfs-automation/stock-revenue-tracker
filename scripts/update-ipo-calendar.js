@@ -144,34 +144,6 @@ const SOURCES = [
       "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
     ].filter(Boolean),
     dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "興櫃日期", "興櫃掛牌日期", "櫃檯買賣日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期"]
-  },
-  {
-    id: "tpex-esb-basic",
-    market: "ESB",
-    label: "興櫃",
-    type: "json",
-    urls: [
-      process.env.TPEX_ESB_BASIC_URL,
-      "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_R"
-    ].filter(Boolean),
-    fieldOrder: [
-      "出表日期",
-      "公司代號",
-      "公司名稱",
-      "公司簡稱",
-      "產業別",
-      "住址",
-      "營利事業統一編號",
-      "董事長",
-      "總經理",
-      "發言人",
-      "發言人職稱",
-      "代理發言人",
-      "總機電話",
-      "成立日期",
-      "興櫃日期"
-    ],
-    dateKeys: ["登錄日期", "興櫃日期", "興櫃掛牌日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "興櫃登錄日期", "listedDate", "registrationDate", "ListingDate"]
   }
 ];
 
@@ -283,19 +255,6 @@ function getValue(row, keys) {
   }
 
   return "";
-}
-
-function getFirstAvailableDate(row, preferredKeys) {
-  const preferred = parseTaiwanDate(getValue(row, preferredKeys));
-  if (preferred) return preferred;
-
-  for (const [key, value] of Object.entries(row || {})) {
-    if (!valueLooksLikeDateKey(key)) continue;
-    const parsed = parseTaiwanDate(value);
-    if (parsed) return parsed;
-  }
-
-  return null;
 }
 
 function extractStockCode(value) {
@@ -745,7 +704,7 @@ async function fetchRowsFromFirstAvailable(source) {
 }
 
 function normalizeCompany(source, row) {
-  const listedDate = getFirstAvailableDate(row, source.dateKeys);
+  const listedDate = parseTaiwanDate(getValue(row, source.dateKeys));
   if (!listedDate) return null;
 
   const code = normalizeStockCode(row);
@@ -783,10 +742,14 @@ async function collectCompanies() {
         .filter(Boolean);
       companies.push(...normalized);
       const codes = [...new Set(normalized.map(company => company.code).filter(Boolean))].sort();
+      if (source.market === "ESB" && normalized.length > 80) {
+        throw new Error(`ESB source produced ${normalized.length} rows; this looks like a full company list, not the recent IPO page.`);
+      }
       sourceReports.push({
         id: source.id,
         status: "ok",
         url: result.url,
+        dateKeys: source.dateKeys,
         rows: result.rows.length,
         acceptedRows: normalized.length,
         codes: codes.slice(0, 80),
@@ -796,6 +759,7 @@ async function collectCompanies() {
       sourceReports.push({
         id: source.id,
         status: "failed",
+        dateKeys: source.dateKeys,
         message: error.message
       });
     }
