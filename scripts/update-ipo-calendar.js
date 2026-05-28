@@ -153,11 +153,14 @@ const SOURCES = [
     id: "tpex-esb-ipo",
     market: "ESB",
     label: "興櫃",
-    type: "csv",
+    type: "auto",
     pageUrls: [
       "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html"
     ],
     urls: [
+      process.env.TPEX_ESB_LEGACY_URL,
+      "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=115",
+      "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=2026",
       process.env.TPEX_ESB_IPO_CSV_URL,
       "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
     ].filter(Boolean),
