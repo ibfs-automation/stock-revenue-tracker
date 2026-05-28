@@ -259,9 +259,21 @@ async function main() {
   const toDate = args.to || addDays(today, DEFAULT_FUTURE_DAYS);
   const { companies, sourceReports } = await collectCompanies();
   const events = makeEvents(companies, fromDate, toDate);
+  const okSources = sourceReports.filter(report => report.status === "ok");
+
+  if (!events.length) {
+    console.log(`No events generated. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
+    console.log("Source reports:");
+    for (const report of sourceReports) {
+      console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
+      if (report.message) console.log(`  ${report.message}`);
+    }
+    throw new Error("No events generated; aborting before touching Google Calendar.");
+  }
 
   if (args.dryRun) {
     console.log(`Dry run: ${events.length} events from ${companies.length} companies.`);
+    console.log(`Sources OK: ${okSources.length}/${sourceReports.length}`);
     console.log(`Window: ${fromDate} to ${toDate}`);
     console.log(events.slice(0, 10).map(event => `${event.date} ${event.title}`).join("\n"));
     return;
