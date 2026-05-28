@@ -266,6 +266,7 @@ async function main() {
     console.log("Source reports:");
     for (const report of sourceReports) {
       console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
+      if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
       if (report.message) console.log(`  ${report.message}`);
     }
     throw new Error("No events generated; aborting before touching Google Calendar.");
@@ -302,6 +303,12 @@ async function main() {
   console.log(`Events: ${events.length}. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
 
   const failed = sourceReports.filter(report => report.status !== "ok");
+  console.log("Source reports:");
+  for (const report of sourceReports) {
+    console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
+    if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
+    if (report.message) console.log(`  ${report.message}`);
+  }
   if (failed.length) {
     console.warn("Some sources failed:");
     for (const report of failed) console.warn(`- ${report.id}: ${report.message}`);
