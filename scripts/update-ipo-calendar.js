@@ -629,6 +629,107 @@ async function fetchRowsFromAllAvailable(source) {
   throw new Error(errors.join("\n") || "No parseable rows");
 }
 
+async function browserRowsForSource(source) {
+  if (process.env.IPO_CALENDAR_DISABLE_BROWSER === "1" || !(source.pageUrls || []).length) {
+    return { rows: [], reports: [] };
+  }
+
+  let chromium;
+  try {
+    ({ chromium } = await import("playwright"));
+  } catch {
+    return { rows: [], reports: [{ url: "playwright", rows: 0, error: "Playwright is not installed" }] };
+  }
+
+  const browser = await chromium.launch({ headless: true });
+  const rows = [];
+  const reports = [];
+
+  try {
+    for (const pageUrl of source.pageUrls || []) {
+      const page = await browser.newPage({ locale: "zh-TW", timezoneId: TIME_ZONE });
+      try {
+        await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60000 });
+        await page.waitForTimeout(1500);
+
+        await page.evaluate((year) => {
+          const controls = [...document.querySelectorAll("input, select")];
+          for (const control of controls) {
+            const label = `${control.name || ""} ${control.id || ""} ${control.getAttribute("placeholder") || ""} ${control.getAttribute("aria-label") || ""}`;
+            if (!/年|year/i.test(label)) continue;
+            if (control.tagName === "SELECT") {
+              const option = [...control.options].find(item => item.value === year || item.textContent.trim() === year);
+              if (option) {
+                control.value = option.value;
+                control.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            } else {
+              control.value = year;
+              control.dispatchEvent(new Event("input", { bubbles: true }));
+              control.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+          }
+        }, String(new Date().getFullYear()));
+
+        const clicked = await page.evaluate(() => {
+          const buttons = [...document.querySelectorAll("button, input[type=button], input[type=submit], a")];
+          const target = buttons.find(button => /查詢|搜尋|送出|Search/i.test(button.textContent || button.value || ""));
+          if (!target) return false;
+          target.click();
+          return true;
+        });
+        if (clicked) {
+          await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
+          await page.waitForTimeout(1000);
+        }
+
+        const pageRows = await page.evaluate(() => {
+          const text = element => (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
+          const parsed = [];
+
+          for (const table of document.querySelectorAll("table")) {
+            const rawRows = [...table.querySelectorAll("tr")]
+              .map(tr => [...tr.querySelectorAll("th,td")].map(cell => text(cell)))
+              .filter(row => row.some(Boolean));
+            if (rawRows.length < 2) continue;
+
+            let headerIndex = rawRows.findIndex(row => row.some(cell => /公司|證券|股票|代號|簡稱|名稱|買賣日期|登錄日期/.test(cell)));
+            if (headerIndex < 0) headerIndex = 0;
+            const headers = rawRows[headerIndex];
+            for (const row of rawRows.slice(headerIndex + 1)) {
+              parsed.push(Object.fromEntries(headers.map((header, index) => [header, row[index] || ""])));
+            }
+          }
+
+          const roleRows = [...document.querySelectorAll("[role=row]")].map(row => [...row.querySelectorAll("[role=cell], [role=gridcell], [role=columnheader]")].map(cell => text(cell))).filter(row => row.length);
+          if (roleRows.length > 1) {
+            const headerIndex = roleRows.findIndex(row => row.some(cell => /公司|證券|股票|代號|簡稱|名稱|買賣日期|登錄日期/.test(cell)));
+            if (headerIndex >= 0) {
+              const headers = roleRows[headerIndex];
+              for (const row of roleRows.slice(headerIndex + 1)) {
+                parsed.push(Object.fromEntries(headers.map((header, index) => [header, row[index] || ""])));
+              }
+            }
+          }
+
+          return parsed;
+        });
+
+        rows.push(...pageRows);
+        reports.push({ url: `browser:${pageUrl}`, rows: pageRows.length });
+      } catch (error) {
+        reports.push({ url: `browser:${pageUrl}`, rows: 0, error: error.message });
+      } finally {
+        await page.close().catch(() => {});
+      }
+    }
+  } finally {
+    await browser.close().catch(() => {});
+  }
+
+  return { rows, reports };
+}
+
 async function fetchAutoFromFirstAvailable(source) {
   const errors = [];
   const urls = await discoveredSourceUrls(source);
@@ -887,7 +988,26 @@ async function fetchHtmlFromFirstAvailable(source) {
 }
 
 async function fetchRowsFromFirstAvailable(source) {
-  return fetchRowsFromAllAvailable(source);
+  const browserResult = await browserRowsForSource(source);
+  let fetchedResult = { url: "", urlReports: [], rows: [] };
+  try {
+    fetchedResult = await fetchRowsFromAllAvailable(source);
+  } catch (error) {
+    if (!browserResult.rows.length) throw error;
+    fetchedResult = {
+      url: "",
+      urlReports: [{ url: "fetch-fallback", rows: 0, error: error.message }],
+      rows: []
+    };
+  }
+  return {
+    url: [
+      ...browserResult.reports.filter(report => report.rows > 0).map(report => report.url),
+      fetchedResult.url
+    ].filter(Boolean).join(", "),
+    urlReports: [...browserResult.reports, ...(fetchedResult.urlReports || [])],
+    rows: [...browserResult.rows, ...fetchedResult.rows]
+  };
   if (source.type === "auto") return fetchAutoFromFirstAvailable(source);
   if (source.type === "csv") return fetchCsvFromFirstAvailable(source);
   if (source.type === "html") return fetchHtmlFromFirstAvailable(source);
