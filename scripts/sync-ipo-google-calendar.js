@@ -16,7 +16,7 @@ const SYNC_TAG_VALUE = "twse-tpex-esb";
 const TOKEN_SCOPE = "https://www.googleapis.com/auth/calendar";
 const DEFAULT_PAST_DAYS = Number(process.env.IPO_CALENDAR_PAST_DAYS || 120);
 const DEFAULT_FUTURE_DAYS = Number(process.env.IPO_CALENDAR_FUTURE_DAYS || 180);
-const WRITE_DELAY_MS = Number(process.env.GOOGLE_CALENDAR_WRITE_DELAY_MS || 750);
+const WRITE_DELAY_MS = Number(process.env.GOOGLE_CALENDAR_WRITE_DELAY_MS || 200);
 const MAX_WRITE_RETRIES = Number(process.env.GOOGLE_CALENDAR_MAX_WRITE_RETRIES || 6);
 
 function parseArgs(argv) {
@@ -298,7 +298,6 @@ async function main() {
     }
   }
 
-  
   console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} unchanged, ${stats.deleted} deleted.`);
   console.log(`Events: ${events.length}. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
 
