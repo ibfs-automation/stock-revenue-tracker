@@ -95,11 +95,26 @@ const SOURCES = [
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
   },
   {
+    id: "twse-newlisting-html",
+    market: "TWSE",
+    label: "上市",
+    type: "html",
+    urls: [
+      process.env.TWSE_NEWLISTING_HTML_URL,
+      "https://www.twse.com.tw/company/newlisting?response=html&yy="
+    ].filter(Boolean),
+    dateKeys: ["股票上市買賣日期", "上市買賣日期", "Listing Date", "listedDate", "ListingDate"]
+  },
+  {
     id: "tpex-mainboard-applicants",
     market: "TPEX",
     label: "上櫃",
-    type: "json",
+    type: "auto",
     urls: [
+      process.env.TPEX_MAINBOARD_APPLICANTS_CSV_URL,
+      "https://www.tpex.org.tw/www/zh-tw/mainboard/applying/status/company?response=csv&charset=utf-8",
+      "https://www.tpex.org.tw/www/zh-tw/mainboard/applying/status/company?response=csv",
+      "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company?response=csv",
       process.env.TPEX_MAINBOARD_APPLICANTS_URL,
       "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
     ].filter(Boolean),
@@ -123,9 +138,20 @@ const SOURCES = [
     id: "tpex-esb-ipo",
     market: "ESB",
     label: "興櫃",
+    type: "csv",
+    urls: [
+      process.env.TPEX_ESB_IPO_CSV_URL,
+      "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
+    ].filter(Boolean),
+    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "興櫃日期", "興櫃掛牌日期", "櫃檯買賣日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期"]
+  },
+  {
+    id: "tpex-esb-basic",
+    market: "ESB",
+    label: "興櫃",
     type: "json",
     urls: [
-      process.env.TPEX_ESB_IPO_URL,
+      process.env.TPEX_ESB_BASIC_URL,
       "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_R"
     ].filter(Boolean),
     fieldOrder: [
@@ -257,6 +283,19 @@ function getValue(row, keys) {
   }
 
   return "";
+}
+
+function getFirstAvailableDate(row, preferredKeys) {
+  const preferred = parseTaiwanDate(getValue(row, preferredKeys));
+  if (preferred) return preferred;
+
+  for (const [key, value] of Object.entries(row || {})) {
+    if (!valueLooksLikeDateKey(key)) continue;
+    const parsed = parseTaiwanDate(value);
+    if (parsed) return parsed;
+  }
+
+  return null;
 }
 
 function extractStockCode(value) {
@@ -706,7 +745,7 @@ async function fetchRowsFromFirstAvailable(source) {
 }
 
 function normalizeCompany(source, row) {
-  const listedDate = parseTaiwanDate(getValue(row, source.dateKeys));
+  const listedDate = getFirstAvailableDate(row, source.dateKeys);
   if (!listedDate) return null;
 
   const code = normalizeStockCode(row);
@@ -743,12 +782,15 @@ async function collectCompanies() {
         .map(row => normalizeCompany(source, row))
         .filter(Boolean);
       companies.push(...normalized);
+      const codes = [...new Set(normalized.map(company => company.code).filter(Boolean))].sort();
       sourceReports.push({
         id: source.id,
         status: "ok",
         url: result.url,
         rows: result.rows.length,
-        acceptedRows: normalized.length
+        acceptedRows: normalized.length,
+        codes: codes.slice(0, 80),
+        moreCodes: Math.max(0, codes.length - 80)
       });
     } catch (error) {
       sourceReports.push({
