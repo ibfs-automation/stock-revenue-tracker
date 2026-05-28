@@ -260,12 +260,27 @@ async function main() {
   const { companies, sourceReports } = await collectCompanies();
   const events = makeEvents(companies, fromDate, toDate);
   const okSources = sourceReports.filter(report => report.status === "ok");
+  const failedSources = sourceReports.filter(report => report.status !== "ok");
+  const requiredSourceIds = ["twse-applylisting-local", "tpex-mainboard-applicants", "tpex-esb-ipo"];
+  const missingRequired = requiredSourceIds.filter(id => !sourceReports.some(report => report.id === id && report.status === "ok"));
+
+  if (missingRequired.length) {
+    console.log("Source reports:");
+    for (const report of sourceReports) {
+      console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
+      if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
+      if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
+      if (report.message) console.log(`  ${report.message}`);
+    }
+    throw new Error(`Required source(s) failed: ${missingRequired.join(", ")}. Aborting before touching Google Calendar.`);
+  }
 
   if (!events.length) {
     console.log(`No events generated. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
     console.log("Source reports:");
     for (const report of sourceReports) {
       console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
+      if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
       if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
       if (report.message) console.log(`  ${report.message}`);
     }
@@ -302,16 +317,16 @@ async function main() {
   console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} unchanged, ${stats.deleted} deleted.`);
   console.log(`Events: ${events.length}. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
 
-  const failed = sourceReports.filter(report => report.status !== "ok");
   console.log("Source reports:");
   for (const report of sourceReports) {
     console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
+    if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
     if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
     if (report.message) console.log(`  ${report.message}`);
   }
-  if (failed.length) {
+  if (failedSources.length) {
     console.warn("Some sources failed:");
-    for (const report of failed) console.warn(`- ${report.id}: ${report.message}`);
+    for (const report of failedSources) console.warn(`- ${report.id}: ${report.message}`);
   }
 }
 
