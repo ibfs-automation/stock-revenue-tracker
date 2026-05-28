@@ -17,6 +17,39 @@ const DEFAULT_WINDOW = {
 
 const SOURCES = [
   {
+    id: "mops-listed-basic",
+    market: "TWSE",
+    label: "上市",
+    type: "csv",
+    urls: [
+      process.env.MOPS_LISTED_BASIC_URL,
+      "https://mopsfin.twse.com.tw/opendata/t187ap03_L.csv"
+    ].filter(Boolean),
+    dateKeys: ["上市日期", "股票上市買賣日期", "掛牌日期", "listedDate", "ListingDate"]
+  },
+  {
+    id: "mops-otc-basic",
+    market: "TPEX",
+    label: "上櫃",
+    type: "csv",
+    urls: [
+      process.env.MOPS_OTC_BASIC_URL,
+      "https://mopsfin.twse.com.tw/opendata/t187ap03_O.csv"
+    ].filter(Boolean),
+    dateKeys: ["上櫃日期", "上市日期", "股票上櫃買賣日期", "掛牌日期", "listedDate", "ListingDate"]
+  },
+  {
+    id: "mops-emerging-basic",
+    market: "ESB",
+    label: "興櫃",
+    type: "csv",
+    urls: [
+      process.env.MOPS_EMERGING_BASIC_URL,
+      "https://mopsfin.twse.com.tw/opendata/t187ap03_R.csv"
+    ].filter(Boolean),
+    dateKeys: ["興櫃日期", "上市日期", "登錄日期", "掛牌日期", "listedDate", "registrationDate", "ListingDate"]
+  },
+  {
     id: "twse-applylisting-local",
     market: "TWSE",
     label: "上市",
@@ -24,6 +57,7 @@ const SOURCES = [
     urls: [
       process.env.TWSE_APPLYLISTING_LOCAL_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingLocal",
+      "https://openapi.twse.com.tw/v1/company/newlisting",
       "https://www.twse.com.tw/rwd/zh/company/applylisting?response=json&type=1"
     ].filter(Boolean),
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "listedDate", "ListingDate"]
@@ -71,7 +105,7 @@ const SOURCES = [
 
 const KEY_ALIASES = {
   code: ["公司代號", "證券代號", "股票代號", "代號", "Code", "symbol", "SecuritiesCode"],
-  name: ["公司簡稱", "公司名稱", "證券簡稱", "股票名稱", "名稱", "Name", "name", "companyName"],
+  name: ["公司簡稱", "公司名稱", "證券簡稱", "股票名稱", "簡稱", "名稱", "Name", "name", "companyName"],
   applicationDate: ["申請日期", "送件日期", "applicationDate"],
   underwriter: ["承銷商", "輔導推薦證券商", "推薦證券商", "underwriter"],
   price: ["承銷價", "認購價格", "參考價", "underwritingPrice"],
@@ -169,6 +203,16 @@ function parseTaiwanDate(value) {
   const text = String(value || "").trim();
   if (!text || /^[-—]+$/.test(text)) return null;
 
+  const compactWestern = text.match(/^(20\d{2})(\d{2})(\d{2})$/);
+  if (compactWestern) {
+    return `${compactWestern[1]}-${compactWestern[2]}-${compactWestern[3]}`;
+  }
+
+  const compactRoc = text.match(/^(\d{3})(\d{2})(\d{2})$/);
+  if (compactRoc) {
+    return `${Number(compactRoc[1]) + 1911}-${compactRoc[2]}-${compactRoc[3]}`;
+  }
+
   const iso = text.match(/(20\d{2})[/-](\d{1,2})[/-](\d{1,2})/);
   if (iso) {
     return `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`;
@@ -225,6 +269,98 @@ async function fetchJsonFromFirstAvailable(source) {
   throw new Error(errors.join("\n"));
 }
 
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let quoted = false;
+
+  const pushValue = () => {
+    row.push(value.replace(/^\uFEFF/, ""));
+    value = "";
+  };
+  const pushRow = () => {
+    if (row.length || value) {
+      pushValue();
+      rows.push(row);
+      row = [];
+    }
+  };
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (quoted) {
+      if (char === "\"" && next === "\"") {
+        value += "\"";
+        index += 1;
+      } else if (char === "\"") {
+        quoted = false;
+      } else {
+        value += char;
+      }
+      continue;
+    }
+
+    if (char === "\"") {
+      quoted = true;
+    } else if (char === ",") {
+      pushValue();
+    } else if (char === "\n") {
+      pushRow();
+    } else if (char !== "\r") {
+      value += char;
+    }
+  }
+
+  if (row.length || value) pushRow();
+  if (!rows.length) return [];
+
+  const headers = rows[0].map(header => String(header || "").trim());
+  return rows.slice(1)
+    .filter(values => values.some(item => String(item || "").trim() !== ""))
+    .map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] || ""])));
+}
+
+async function fetchCsvFromFirstAvailable(source) {
+  const errors = [];
+
+  for (const url of source.urls) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "text/csv, text/plain, */*",
+          "User-Agent": "Mozilla/5.0 ipo-calendar-generator"
+        }
+      });
+
+      if (!response.ok) {
+        errors.push(`${url} HTTP ${response.status}`);
+        continue;
+      }
+
+      const text = await response.text();
+      if (/^\s*</.test(text)) {
+        errors.push(`${url} returned HTML instead of CSV`);
+        continue;
+      }
+
+      return { url, rows: parseCsv(text) };
+    } catch (error) {
+      errors.push(`${url} ${error.message}`);
+    }
+  }
+
+  throw new Error(errors.join("\n"));
+}
+
+async function fetchRowsFromFirstAvailable(source) {
+  return source.type === "csv"
+    ? fetchCsvFromFirstAvailable(source)
+    : fetchJsonFromFirstAvailable(source);
+}
+
 function normalizeCompany(source, row) {
   const listedDate = parseTaiwanDate(getValue(row, source.dateKeys));
   if (!listedDate) return null;
@@ -255,7 +391,7 @@ async function collectCompanies() {
 
   for (const source of SOURCES) {
     try {
-      const result = await fetchJsonFromFirstAvailable(source);
+      const result = await fetchRowsFromFirstAvailable(source);
       const normalized = result.rows.map(row => normalizeCompany(source, row)).filter(Boolean);
       companies.push(...normalized);
       sourceReports.push({
