@@ -553,6 +553,82 @@ async function fetchJsonFromFirstAvailable(source) {
   throw new Error(errors.join("\n"));
 }
 
+async function fetchTextFromUrl(url, accept) {
+  const response = await fetch(url, {
+    headers: {
+      "Accept": accept,
+      "User-Agent": "Mozilla/5.0 ipo-calendar-generator"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return {
+    contentType: response.headers.get("content-type") || "",
+    text: await decodeResponseText(response)
+  };
+}
+
+function parseRowsFromText(source, url, text, contentType = "") {
+  const trimmed = String(text || "").replace(/^\uFEFF/, "").trim();
+  const parsers = [];
+
+  if (source.type === "json" || /json/i.test(contentType) || /^[{[]/.test(trimmed)) {
+    parsers.push(() => objectRows(JSON.parse(trimmed)));
+  }
+
+  if (source.type === "csv" || source.type === "auto" || /csv|text\/plain/i.test(contentType) || /\.csv(?:$|[?#])|response=csv/i.test(url)) {
+    parsers.push(() => /^\s*</.test(trimmed) ? [] : parseCsv(trimmed));
+  }
+
+  if (source.type === "html" || source.type === "auto" || /^\s*</.test(trimmed) || /html/i.test(contentType)) {
+    parsers.push(() => parseHtmlTables(text));
+    parsers.push(() => parseEmbeddedJsonRows(text));
+  }
+
+  for (const parse of parsers) {
+    try {
+      const rows = parse();
+      if (rows.length) return rows;
+    } catch {
+      // Try the next parser; official pages differ by endpoint.
+    }
+  }
+
+  return [];
+}
+
+async function fetchRowsFromAllAvailable(source) {
+  const errors = [];
+  const urlReports = [];
+  const allRows = [];
+  const urls = await discoveredSourceUrls(source);
+
+  for (const url of urls) {
+    try {
+      const { text, contentType } = await fetchTextFromUrl(url, "text/html, application/json, text/csv, text/plain, */*");
+      const rows = parseRowsFromText(source, url, text, contentType);
+      urlReports.push({ url, rows: rows.length });
+      if (rows.length) allRows.push(...rows);
+    } catch (error) {
+      errors.push(`${url} ${error.message}`);
+      urlReports.push({ url, rows: 0, error: error.message });
+    }
+  }
+
+  if (allRows.length) {
+    return {
+      url: urlReports.filter(report => report.rows > 0).map(report => report.url).join(", "),
+      urlReports,
+      rows: allRows
+    };
+  }
+
+  throw new Error(errors.join("\n") || "No parseable rows");
+}
+
 async function fetchAutoFromFirstAvailable(source) {
   const errors = [];
   const urls = await discoveredSourceUrls(source);
@@ -811,6 +887,7 @@ async function fetchHtmlFromFirstAvailable(source) {
 }
 
 async function fetchRowsFromFirstAvailable(source) {
+  return fetchRowsFromAllAvailable(source);
   if (source.type === "auto") return fetchAutoFromFirstAvailable(source);
   if (source.type === "csv") return fetchCsvFromFirstAvailable(source);
   if (source.type === "html") return fetchHtmlFromFirstAvailable(source);
@@ -863,6 +940,7 @@ async function collectCompanies() {
         id: source.id,
         status: "ok",
         url: result.url,
+        urlReports: result.urlReports || [],
         dateKeys: source.dateKeys,
         rows: result.rows.length,
         acceptedRows: normalized.length,
