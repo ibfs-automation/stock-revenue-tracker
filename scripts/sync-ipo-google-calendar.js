@@ -268,8 +268,14 @@ async function main() {
   const events = makeEvents(companies, fromDate, toDate);
   const okSources = sourceReports.filter(report => report.status === "ok");
   const failedSources = sourceReports.filter(report => report.status !== "ok");
-  const requiredSourceIds = ["twse-applylisting-local", "tpex-mainboard-applicants", "tpex-esb-ipo"];
-  const missingRequired = requiredSourceIds.filter(id => !sourceReports.some(report => report.id === id && report.status === "ok"));
+  const requiredSourceGroups = [
+    { label: "TWSE 上市", ids: ["twse-applylisting-local", "twse-applylisting-foreign", "twse-newlisting", "twse-newlisting-html"] },
+    { label: "TPEX 上櫃", ids: ["tpex-mainboard-applicants"] },
+    { label: "ESB 興櫃", ids: ["tpex-esb-ipo"] }
+  ];
+  const missingRequired = requiredSourceGroups
+    .filter(group => !sourceReports.some(report => group.ids.includes(report.id) && report.status === "ok" && Number(report.acceptedRows || 0) > 0))
+    .map(group => group.label);
 
   if (missingRequired.length) {
     console.log("Source reports:");
