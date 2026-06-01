@@ -166,13 +166,13 @@ const SOURCES = [
     ].filter(Boolean),
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
-    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期"]
+    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "預計櫃檯買賣開始日", "預計櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期"]
   }
 ];
 
 const KEY_ALIASES = {
-  code: ["公司代號", "證券代號", "股票代號", "代號", "Code", "symbol", "SecuritiesCode"],
-  name: ["公司簡稱", "公司名稱", "證券簡稱", "股票名稱", "簡稱", "名稱", "Name", "name", "companyName"],
+  code: ["公司代號", "證券代號", "股票代號", "有價證券代號", "代號", "Code", "symbol", "SecuritiesCode"],
+  name: ["公司簡稱", "公司名稱", "發行公司名稱", "證券簡稱", "證券名稱", "股票簡稱", "股票名稱", "有價證券名稱", "股票代號及名稱", "證券代號及名稱", "有價證券代號及名稱", "公司代號及名稱", "簡稱", "名稱", "Name", "name", "companyName"],
   applicationDate: ["申請日期", "送件日期", "applicationDate"],
   underwriter: ["承銷商", "輔導推薦證券商", "推薦證券商", "underwriter"],
   price: ["承銷價", "認購價格", "參考價", "underwritingPrice"],
@@ -294,7 +294,7 @@ function valueLooksLikeDateKey(key) {
 }
 
 function valueLooksLikeNameKey(key) {
-  return /公司(?:簡稱|名稱)|證券(?:簡稱|名稱)|股票(?:簡稱|名稱)|簡稱$|^名稱$|company|name/i.test(String(key || ""));
+  return /公司(?:簡稱|名稱|代號及名稱)|發行公司名稱|證券(?:簡稱|名稱|代號及名稱)|股票(?:簡稱|名稱|代號及名稱)|有價證券(?:名稱|代號及名稱)|簡稱$|^名稱$|company|name/i.test(String(key || ""));
 }
 
 function normalizeRowForSource(source, row) {
@@ -1316,13 +1316,17 @@ async function collectCompanies() {
   for (const source of SOURCES) {
     try {
       const result = await fetchRowsFromFirstAvailable(source);
-      const normalized = result.rows
-        .map(row => normalizeRowForSource(source, row))
+      const normalizedRows = result.rows
+        .map(row => normalizeRowForSource(source, row));
+      const normalized = normalizedRows
         .map(row => normalizeCompany(source, row))
         .filter(Boolean);
       const codes = [...new Set(normalized.map(company => company.code).filter(Boolean))].sort();
       if (!normalized.length) {
-        throw new Error(`No rows contained a valid code, name, and target date. Parsed rows: ${result.rows.length}.`);
+        const samples = normalizedRows.slice(0, 5).map(row => Object.fromEntries(
+          Object.entries(row || {}).slice(0, 12).map(([key, value]) => [key, String(value || "").slice(0, 120)])
+        ));
+        throw new Error(`No rows contained a valid code, name, and target date. Parsed rows: ${result.rows.length}. Samples: ${JSON.stringify(samples)}`);
       }
       if (source.market === "ESB" && normalized.length > 80) {
         throw new Error(`ESB source produced ${normalized.length} rows; this looks like a full company list, not the recent IPO page.`);
@@ -1330,6 +1334,8 @@ async function collectCompanies() {
       companies.push(...normalized);
       sourceReports.push({
         id: source.id,
+        market: source.market,
+        label: source.label,
         status: "ok",
         url: result.url,
         urlReports: result.urlReports || [],
@@ -1342,6 +1348,8 @@ async function collectCompanies() {
     } catch (error) {
       sourceReports.push({
         id: source.id,
+        market: source.market,
+        label: source.label,
         status: "failed",
         dateKeys: source.dateKeys,
         message: error.message
