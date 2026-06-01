@@ -623,6 +623,43 @@ function rowsFromRawText(source, url, text) {
   }];
 }
 
+function dateIndexesFromRows(source, rows) {
+  const dates = [];
+  const keys = ["資料日期", "掛牌日期", "登錄日期", "date", "listedDate", ...(source.dateKeys || [])];
+
+  for (const row of rows || []) {
+    const normalized = normalizeRowForSource(source, row);
+    const code = normalizeStockCode(normalized);
+    if (code) continue;
+
+    for (const key of keys) {
+      const value = getValue(normalized, [key]);
+      const parsed = parseTaiwanDate(value);
+      if (parsed) dates.push(parsed);
+    }
+  }
+
+  return uniqueValues(dates);
+}
+
+function compactDateVariants(dateKey) {
+  const [year, month, day] = dateKey.split("-");
+  const rocYear = String(Number(year) - 1911);
+  const mm = month.padStart(2, "0");
+  const dd = day.padStart(2, "0");
+  return uniqueValues([
+    `${year}${mm}${dd}`,
+    `${rocYear}${mm}${dd}`,
+    `${year}/${Number(month)}/${Number(day)}`,
+    `${year}/${mm}/${dd}`,
+    `${rocYear}/${Number(month)}/${Number(day)}`,
+    `${rocYear}/${mm}/${dd}`,
+    `${Number(month)}/${Number(day)}`,
+    `${mm}/${dd}`,
+    `${Number(month)}月${Number(day)}日`
+  ]);
+}
+
 function responseLooksLikeData(url, contentType) {
   const type = String(contentType || "").toLowerCase();
   if (/image\/|font\/|text\/css|javascript|application\/octet-stream|video\/|audio\//i.test(type)) {
@@ -659,6 +696,57 @@ async function fetchRowsFromDetailLinks(source, pageUrl, html) {
     urlReports.unshift({ url: `detail-links:${pageUrl}`, rows: detailUrls.length });
   }
 
+  return { rows, urlReports };
+}
+
+function dateExpansionUrlCandidates(source, pageUrl, dateKey) {
+  const candidates = [];
+  const variants = compactDateVariants(dateKey);
+
+  for (const variant of variants) {
+    try {
+      const base = new URL(pageUrl);
+      const withoutHtml = base.href.replace(/\.html(?:$|[?#].*)/i, "");
+      const wwwHref = withoutHtml.replace("/zh-tw/", "/www/zh-tw/");
+      for (const href of uniqueValues([withoutHtml, wwwHref])) {
+        for (const pathSuffix of ["", "/detail"]) {
+          for (const dateParam of ["date", "queryDate", "listedDate", "stk_date", "d"]) {
+            const url = new URL(`${href}${pathSuffix}`);
+            url.searchParams.set("response", "json");
+            url.searchParams.set(dateParam, variant);
+            candidates.push(url.href);
+          }
+        }
+      }
+    } catch {
+      // Ignore malformed page URLs.
+    }
+  }
+
+  return uniqueValues(candidates);
+}
+
+async function fetchRowsFromDateIndexes(source, pageUrl, indexRows) {
+  const rows = [];
+  const urlReports = [];
+  const dates = dateIndexesFromRows(source, indexRows).slice(0, Number(process.env.IPO_CALENDAR_MAX_DATE_INDEXES || 80));
+
+  for (const dateKey of dates) {
+    for (const url of dateExpansionUrlCandidates(source, pageUrl, dateKey)) {
+      try {
+        const { text, contentType } = await fetchTextFromUrl(url, "text/html, application/json, text/csv, text/plain, */*");
+        const parsed = parseRowsFromText(source, url, text, contentType);
+        const rawRows = rowsFromRawText(source, url, textFromHtmlCell(text));
+        const expanded = [...parsed, ...rawRows];
+        urlReports.push({ url: `date-expand:${url}`, rows: expanded.length });
+        if (expanded.length) rows.push(...expanded);
+      } catch (error) {
+        urlReports.push({ url: `date-expand:${url}`, rows: 0, error: error.message });
+      }
+    }
+  }
+
+  if (dates.length) urlReports.unshift({ url: `date-indexes:${pageUrl}`, rows: dates.length });
   return { rows, urlReports };
 }
 
@@ -755,6 +843,9 @@ async function fetchRowsFromAllAvailable(source) {
         urlReports.push(...detailResult.urlReports);
         if (detailResult.rows.length) allRows.push(...detailResult.rows);
       }
+      const dateResult = await fetchRowsFromDateIndexes(source, url, rows);
+      urlReports.push(...dateResult.urlReports);
+      if (dateResult.rows.length) allRows.push(...dateResult.rows);
     } catch (error) {
       errors.push(`${url} ${error.message}`);
       urlReports.push({ url, rows: 0, error: error.message });
@@ -913,6 +1004,76 @@ async function browserRowsForSource(source) {
           return parsed;
         });
 
+        const dateIndexRows = [...networkRows, ...pageRows].filter(row => {
+          const text = JSON.stringify(row || {});
+          return !/(^|[^\d])\d{4,6}(?!\d)/.test(text) && /資料日期|掛牌日期|登錄日期|202\d{5}|\d{3}\/\d{1,2}\/\d{1,2}/.test(text);
+        });
+        const dateIndexes = dateIndexesFromRows(source, dateIndexRows).slice(0, Number(process.env.IPO_CALENDAR_MAX_DATE_INDEXES || 80));
+        const expandedDateRows = [];
+        for (const dateKey of dateIndexes) {
+          const variants = compactDateVariants(dateKey);
+          const clickedDate = await page.evaluate((dateTexts) => {
+            const normalize = value => String(value || "").replace(/\s+/g, "");
+            const wanted = dateTexts.map(normalize);
+            const elements = [...document.querySelectorAll("button, a, [role=button], input[type=button], input[type=submit], td, li, div, span")]
+              .filter(element => {
+                const text = normalize(element.innerText || element.textContent || element.value || "");
+                return text && wanted.some(item => text.includes(item));
+              });
+            const target = elements.find(element => /^(BUTTON|A|INPUT)$/.test(element.tagName) || element.getAttribute("role") === "button") || elements[0];
+            if (!target) return false;
+            target.click();
+            return true;
+          }, variants);
+
+          if (!clickedDate) {
+            await page.evaluate((dateTexts) => {
+              const controls = [...document.querySelectorAll("input, select")];
+              for (const control of controls) {
+                const label = `${control.name || ""} ${control.id || ""} ${control.getAttribute("placeholder") || ""} ${control.getAttribute("aria-label") || ""}`;
+                if (!/日期|date|day/i.test(label)) continue;
+                const value = dateTexts[0];
+                if (control.tagName === "SELECT") {
+                  const option = [...control.options].find(item => dateTexts.includes(item.value) || dateTexts.includes(item.textContent.trim()));
+                  if (option) control.value = option.value;
+                } else {
+                  control.value = value;
+                  control.dispatchEvent(new Event("input", { bubbles: true }));
+                }
+                control.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            }, variants);
+            await page.evaluate(() => {
+              const buttons = [...document.querySelectorAll("button, input[type=button], input[type=submit], a")];
+              const target = buttons.find(button => /查詢|搜尋|送出|Search/i.test(button.textContent || button.value || ""));
+              if (target) target.click();
+            });
+          }
+
+          await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
+          await page.waitForTimeout(800);
+          await Promise.allSettled(responsePromises);
+          const expandedText = await page.evaluate(() => document.body ? (document.body.innerText || document.body.textContent || "") : "");
+          expandedDateRows.push(...rowsFromRawText(source, pageUrl, expandedText));
+          expandedDateRows.push(...await page.evaluate(() => {
+            const text = element => (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
+            const parsed = [];
+            for (const table of document.querySelectorAll("table")) {
+              const rawRows = [...table.querySelectorAll("tr")]
+                .map(tr => [...tr.querySelectorAll("th,td")].map(cell => text(cell)))
+                .filter(row => row.some(Boolean));
+              if (rawRows.length < 2) continue;
+              let headerIndex = rawRows.findIndex(row => row.some(cell => /公司|證券|股票|代號|簡稱|名稱|買賣日期|登錄日期|掛牌日期/.test(cell)));
+              if (headerIndex < 0) headerIndex = 0;
+              const headers = rawRows[headerIndex];
+              for (const row of rawRows.slice(headerIndex + 1)) {
+                parsed.push(Object.fromEntries(headers.map((header, index) => [header, row[index] || ""])));
+              }
+            }
+            return parsed;
+          }));
+        }
+
         const detailLinks = await page.evaluate(() => {
           const links = [...document.querySelectorAll("a[href]")].map(link => link.href).filter(Boolean);
           return [...new Set(links)];
@@ -979,10 +1140,12 @@ async function browserRowsForSource(source) {
           }
         }
 
-        rows.push(...networkRows, ...pageRows);
+        rows.push(...networkRows, ...pageRows, ...expandedDateRows);
         rows.push(...detailRows);
         reports.push(...networkReports);
         reports.push({ url: `browser-dom:${pageUrl}`, rows: pageRows.length });
+        if (dateIndexes.length) reports.push({ url: `browser-date-indexes:${pageUrl}`, rows: dateIndexes.length });
+        if (expandedDateRows.length) reports.push({ url: `browser-date-expanded:${pageUrl}`, rows: expandedDateRows.length });
         if (matchingDetailLinks.length) reports.push({ url: `browser-detail-links:${pageUrl}`, rows: matchingDetailLinks.length });
         if (detailRows.length) reports.push({ url: `browser-detail-rows:${pageUrl}`, rows: detailRows.length });
       } catch (error) {
@@ -1326,7 +1489,10 @@ async function collectCompanies() {
         const samples = normalizedRows.slice(0, 5).map(row => Object.fromEntries(
           Object.entries(row || {}).slice(0, 12).map(([key, value]) => [key, String(value || "").slice(0, 120)])
         ));
-        throw new Error(`No rows contained a valid code, name, and target date. Parsed rows: ${result.rows.length}. Samples: ${JSON.stringify(samples)}`);
+        const error = new Error(`No rows contained a valid code, name, and target date. Parsed rows: ${result.rows.length}. Samples: ${JSON.stringify(samples)}`);
+        error.urlReports = result.urlReports || [];
+        error.rows = result.rows.length;
+        throw error;
       }
       if (source.market === "ESB" && normalized.length > 80) {
         throw new Error(`ESB source produced ${normalized.length} rows; this looks like a full company list, not the recent IPO page.`);
@@ -1352,6 +1518,9 @@ async function collectCompanies() {
         label: source.label,
         status: "failed",
         dateKeys: source.dateKeys,
+        rows: error.rows || 0,
+        acceptedRows: 0,
+        urlReports: error.urlReports || [],
         message: error.message
       });
     }
