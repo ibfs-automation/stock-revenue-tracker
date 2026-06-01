@@ -1296,8 +1296,13 @@ function parseCsv(text) {
   if (row.length || value) pushRow();
   if (!rows.length) return [];
 
-  const headers = rows[0].map(header => String(header || "").trim());
-  return rows.slice(1)
+  const headerIndex = rows.findIndex(row => (
+    row.length > 1
+    && row.some(cell => /公司|證券|股票|代號|簡稱|名稱|買賣日期|登錄日期|掛牌日期|櫃檯買賣開始/i.test(String(cell || "")))
+  ));
+  const actualHeaderIndex = headerIndex >= 0 ? headerIndex : 0;
+  const headers = rows[actualHeaderIndex].map(header => String(header || "").trim());
+  return rows.slice(actualHeaderIndex + 1)
     .filter(values => values.some(item => String(item || "").trim() !== ""))
     .map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] || ""])));
 }
