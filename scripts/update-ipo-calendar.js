@@ -164,6 +164,7 @@ const SOURCES = [
       process.env.TPEX_ESB_IPO_CSV_URL
     ].filter(Boolean),
     excludeUrlPatterns: [/EmergingNewListPrice/i, /emerging_register\/.*(?:price|Price|認購)/i],
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
     dateKeys: ["登錄日期", "登錄日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期", "Date of listing", "Listing date"]
@@ -541,9 +542,7 @@ async function discoveredSourceUrls(source) {
   }
 
   candidates.push(...(source.urls || []));
-  return uniqueValues(candidates).filter(url => (
-    !(source.excludeUrlPatterns || []).some(pattern => pattern.test(url))
-  ));
+  return uniqueValues(candidates).filter(url => sourceUrlAllowed(source, url));
 }
 
 function deepObjectRows(value, rows = []) {
@@ -679,6 +678,12 @@ function responseLooksLikeData(url, contentType) {
 
   return /json|csv|text\/plain|html/i.test(type)
     || /response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|api/i.test(url);
+}
+
+function sourceUrlAllowed(source, url) {
+  if ((source.excludeUrlPatterns || []).some(pattern => pattern.test(url))) return false;
+  if (!(source.includeUrlPatterns || []).length) return true;
+  return source.includeUrlPatterns.some(pattern => pattern.test(url));
 }
 
 async function fetchRowsFromDetailLinks(source, pageUrl, html) {
@@ -897,7 +902,7 @@ async function browserRowsForSource(source) {
       page.on("response", response => {
         const url = response.url();
         const contentType = response.headers()["content-type"] || "";
-        if (!responseLooksLikeData(url, contentType)) {
+        if (!responseLooksLikeData(url, contentType) || !sourceUrlAllowed(source, url)) {
           return;
         }
 
@@ -933,14 +938,18 @@ async function browserRowsForSource(source) {
             const controls = [...document.querySelectorAll("input, select")];
             for (const control of controls) {
               const label = `${control.name || ""} ${control.id || ""} ${control.getAttribute("placeholder") || ""} ${control.getAttribute("aria-label") || ""}`;
-              if (!/年|year/i.test(label)) continue;
               if (control.tagName === "SELECT") {
-                const option = [...control.options].find(item => item.value === year || item.textContent.trim() === year);
+                const options = [...control.options];
+                const option = options.find(item => item.value === year || item.textContent.trim() === year)
+                  || options.find(item => item.value.includes(year) || item.textContent.trim().includes(year));
                 if (option) {
                   control.value = option.value;
                   control.dispatchEvent(new Event("change", { bubbles: true }));
                 }
               } else {
+                const value = String(control.value || "");
+                const looksLikeYearControl = /年|year/i.test(label) || /^(20\d{2}|\d{2,3})?$/.test(value);
+                if (!looksLikeYearControl) continue;
                 control.value = year;
                 control.dispatchEvent(new Event("input", { bubbles: true }));
                 control.dispatchEvent(new Event("change", { bubbles: true }));
@@ -950,12 +959,25 @@ async function browserRowsForSource(source) {
 
           const clicked = await page.evaluate(() => {
             const buttons = [...document.querySelectorAll("button, input[type=button], input[type=submit], a")];
-            const target = buttons.find(button => /查詢|搜尋|送出|Search/i.test(button.textContent || button.value || ""));
-            if (!target) return false;
+            const target = buttons.find(button => /查詢|搜尋|送出|Search/i.test(button.textContent || button.value || ""))
+              || buttons.find(button => button.type === "submit")
+              || buttons.find(button => /btn|search|query|submit/i.test(`${button.className || ""} ${button.id || ""} ${button.name || ""}`));
+            if (!target) {
+              const form = document.querySelector("form");
+              if (form) {
+                form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+                return true;
+              }
+              return false;
+            }
             target.click();
             return true;
           });
           if (clicked) {
+            await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
+            await page.waitForTimeout(1000);
+          } else {
+            await page.keyboard.press("Enter").catch(() => {});
             await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
             await page.waitForTimeout(1000);
           }
@@ -1097,7 +1119,7 @@ async function browserRowsForSource(source) {
           detailPage.on("response", response => {
             const url = response.url();
             const contentType = response.headers()["content-type"] || "";
-            if (!responseLooksLikeData(url, contentType)) return;
+            if (!responseLooksLikeData(url, contentType) || !sourceUrlAllowed(source, url)) return;
 
             const task = response.body()
               .then(buffer => {
