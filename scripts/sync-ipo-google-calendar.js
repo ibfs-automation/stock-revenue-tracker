@@ -274,7 +274,7 @@ async function main() {
     { label: "ESB 興櫃", ids: ["tpex-esb-ipo"] }
   ];
   const missingRequired = requiredSourceGroups
-    .filter(group => !sourceReports.some(report => group.ids.includes(report.id) && report.status === "ok" && Number(report.acceptedRows || 0) > 0))
+    .filter(group => !sourceReports.some(report => group.ids.includes(report.id) && report.status === "ok"))
     .map(group => group.label);
 
   if (missingRequired.length) {
