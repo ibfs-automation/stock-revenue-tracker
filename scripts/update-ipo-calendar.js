@@ -28,6 +28,7 @@ const SOURCES = [
       process.env.TWSE_APPLYLISTING_LOCAL_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingLocal"
     ].filter(Boolean),
+    includeUrlPatterns: [/openapi\.twse\.com\.tw\/v1\/company\/applylistingLocal/i, /\/company\/applylisting/i, /\/zh\/listed\/listed\/apply-listing/i],
     fieldOrder: [
       "索引",
       "公司代號",
@@ -57,6 +58,7 @@ const SOURCES = [
       process.env.TWSE_APPLYLISTING_FOREIGN_URL,
       "https://openapi.twse.com.tw/v1/company/applylistingForeign"
     ].filter(Boolean),
+    includeUrlPatterns: [/openapi\.twse\.com\.tw\/v1\/company\/applylistingForeign/i, /\/company\/applylisting/i, /\/zh\/listed\/listed\/apply-listing/i],
     fieldOrder: [
       "索引",
       "公司代號",
@@ -86,6 +88,7 @@ const SOURCES = [
       process.env.TWSE_NEWLISTING_URL,
       "https://openapi.twse.com.tw/v1/company/newlisting"
     ].filter(Boolean),
+    includeUrlPatterns: [/openapi\.twse\.com\.tw\/v1\/company\/newlisting/i, /\/company\/newlisting/i, /\/zh\/listed\/listed\/apply-listing/i],
     fieldOrder: [
       "公司代號",
       "公司簡稱",
@@ -115,6 +118,7 @@ const SOURCES = [
       process.env.TWSE_NEWLISTING_HTML_URL,
       "https://www.twse.com.tw/company/newlisting?response=html&yy="
     ].filter(Boolean),
+    includeUrlPatterns: [/\/company\/newlisting/i, /\/zh\/listed\/listed\/apply-listing/i],
     dateKeys: ["股票上市買賣日期", "上市買賣日期", "Listing Date", "listedDate", "ListingDate"]
   },
   {
@@ -133,6 +137,8 @@ const SOURCES = [
       process.env.TPEX_MAINBOARD_APPLICANTS_URL,
       "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
     ].filter(Boolean),
+    excludeUrlPatterns: [/\/data\/menu\//i, /menu\.json/i],
+    includeUrlPatterns: [/\/mainboard\/applying\/status\/company/i, /tpex_esb_applicant_companies/i],
     fieldOrder: [
       "申請日期",
       "股票代號",
@@ -436,6 +442,23 @@ function isNonListingSignalRow(source, row) {
   if (!source || source.market !== "ESB") return false;
   const text = JSON.stringify(row || {});
   return /認購價格|申請加入.*推薦證券商|推薦證券商.*申請加入|推薦證券商.*生效|加入.*推薦證券商/.test(text);
+}
+
+function rowLooksLikeCandidate(source, row) {
+  const text = JSON.stringify(row || "");
+  if (!text || text.length < 8) return false;
+  if (/menu|children|\[object Object\]|"搜尋"|查詢條件|網站導覽/i.test(text)) return false;
+  if (isNonListingSignalRow(source, row)) return false;
+
+  const hasCode = !!normalizeStockCode(row);
+  const hasNamedKey = Object.keys(row || {}).some(key => (
+    valueLooksLikeNameKey(key)
+    || (source.dateKeys || []).some(dateKey => normalizeKey(dateKey) === normalizeKey(key))
+    || KEY_ALIASES.code.some(codeKey => normalizeKey(codeKey) === normalizeKey(key))
+  ));
+  const hasDate = !!parseTaiwanDate(getValue(row, source.dateKeys)) || !!extractDateFromTextByKeys(rowRawText(row), source.dateKeys);
+
+  return (hasCode && (hasNamedKey || hasDate)) || (hasCode && /登錄|興櫃|上櫃|上市|買賣|掛牌|櫃檯/.test(text));
 }
 
 function objectRows(payload) {
@@ -1461,7 +1484,7 @@ async function fetchRowsFromFirstAvailable(source) {
   try {
     fetchedResult = await fetchRowsFromAllAvailable(source);
   } catch (error) {
-    if (!browserResult.rows.length) throw error;
+    if (!browserResult.rows.some(row => rowLooksLikeCandidate(source, normalizeRowForSource(source, row)))) throw error;
     fetchedResult = {
       url: "",
       urlReports: [{ url: "fetch-fallback", rows: 0, error: error.message }],
@@ -1519,7 +1542,8 @@ async function collectCompanies() {
     try {
       const result = await fetchRowsFromFirstAvailable(source);
       const normalizedRows = result.rows
-        .map(row => normalizeRowForSource(source, row));
+        .map(row => normalizeRowForSource(source, row))
+        .filter(row => rowLooksLikeCandidate(source, row));
       const normalized = normalizedRows
         .map(row => normalizeCompany(source, row))
         .filter(Boolean);
