@@ -161,12 +161,12 @@ const SOURCES = [
       process.env.TPEX_ESB_LEGACY_URL,
       "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=115",
       "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=2026",
-      process.env.TPEX_ESB_IPO_CSV_URL,
-      "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
+      process.env.TPEX_ESB_IPO_CSV_URL
     ].filter(Boolean),
+    excludeUrlPatterns: [/EmergingNewListPrice/i, /emerging_register\/.*(?:price|Price|認購)/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
-    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "預計櫃檯買賣開始日", "預計櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期"]
+    dateKeys: ["登錄日期", "登錄日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期", "Date of listing", "Listing date"]
   }
 ];
 
@@ -431,6 +431,12 @@ function normalizeCompanyNameFromText(text, code) {
   return tokens.find(token => /[\u4e00-\u9fff]/.test(token) && token.length <= 16 && !/日期|代號|名稱|查詢|資料|下載|公司$/.test(token)) || "";
 }
 
+function isNonListingSignalRow(source, row) {
+  if (!source || source.market !== "ESB") return false;
+  const text = JSON.stringify(row || {});
+  return /認購價格|申請加入.*推薦證券商|推薦證券商.*申請加入|推薦證券商.*生效|加入.*推薦證券商/.test(text);
+}
+
 function objectRows(payload) {
   if (Array.isArray(payload)) return payload;
 
@@ -535,7 +541,9 @@ async function discoveredSourceUrls(source) {
   }
 
   candidates.push(...(source.urls || []));
-  return uniqueValues(candidates);
+  return uniqueValues(candidates).filter(url => (
+    !(source.excludeUrlPatterns || []).some(pattern => pattern.test(url))
+  ));
 }
 
 function deepObjectRows(value, rows = []) {
@@ -1451,6 +1459,8 @@ async function fetchRowsFromFirstAvailable(source) {
 }
 
 function normalizeCompany(source, row) {
+  if (isNonListingSignalRow(source, row)) return null;
+
   const rawText = rowRawText(row);
   const listedDate = parseTaiwanDate(getValue(row, source.dateKeys)) || extractDateFromTextByKeys(rawText, source.dateKeys);
   if (!listedDate) return null;
