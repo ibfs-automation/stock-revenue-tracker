@@ -948,8 +948,10 @@ async function browserRowsForSource(source) {
                 }
               } else {
                 const value = String(control.value || "");
-                const looksLikeYearControl = /年|year/i.test(label) || /^(20\d{2}|\d{2,3})?$/.test(value);
+                const looksLikeYearControl = /年|year/i.test(label) || /^(20\d{2}|\d{2,3})$/.test(value);
+                const looksLikeSearchControl = /搜尋|查詢|公司|代號|簡稱|keyword|search|query|code|name/i.test(label);
                 if (!looksLikeYearControl) continue;
+                if (looksLikeSearchControl && !/年|year/i.test(label)) continue;
                 control.value = year;
                 control.dispatchEvent(new Event("input", { bubbles: true }));
                 control.dispatchEvent(new Event("change", { bubbles: true }));
