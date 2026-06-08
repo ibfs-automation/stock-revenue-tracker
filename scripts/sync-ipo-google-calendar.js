@@ -18,6 +18,7 @@ const DEFAULT_PAST_DAYS = Number(process.env.IPO_CALENDAR_PAST_DAYS || 120);
 const DEFAULT_FUTURE_DAYS = Number(process.env.IPO_CALENDAR_FUTURE_DAYS || 180);
 const WRITE_DELAY_MS = Number(process.env.GOOGLE_CALENDAR_WRITE_DELAY_MS || 200);
 const MAX_WRITE_RETRIES = Number(process.env.GOOGLE_CALENDAR_MAX_WRITE_RETRIES || 6);
+const DELETE_MISSING_EVENTS = process.env.IPO_CALENDAR_DELETE_MISSING === "1";
 
 function parseArgs(argv) {
   const args = {};
@@ -321,6 +322,10 @@ async function main() {
 
   for (const item of existing) {
     if (!desiredIds.has(item.id)) {
+      if (!DELETE_MISSING_EVENTS) {
+        stats.protected += 1;
+        continue;
+      }
       const market = existingPrivateProperties(item).ipoMarket;
       if (!okMarkets.has(market)) {
         stats.protected += 1;
