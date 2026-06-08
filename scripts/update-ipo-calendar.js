@@ -178,7 +178,7 @@ const SOURCES = [
         "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
       ].filter(Boolean);
     })(),
-    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i, /tpex_esb_applicant_companies/i, /regular_emerging\/emerging_stock/i],
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i, /tpex_esb_applicant_companies/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
     fieldOrder: ["序號", "股票代號", "公司簡稱", "登錄日期", "認購價格", "公開說明書", "網址"],
