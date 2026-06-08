@@ -1557,9 +1557,6 @@ async function collectCompanies() {
         error.rows = result.rows.length;
         throw error;
       }
-      if (source.market === "ESB" && normalized.length > 80) {
-        throw new Error(`ESB source produced ${normalized.length} rows; this looks like a full company list, not the recent IPO page.`);
-      }
       companies.push(...normalized);
       sourceReports.push({
         id: source.id,
