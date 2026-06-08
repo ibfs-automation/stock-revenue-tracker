@@ -268,6 +268,7 @@ async function main() {
   const events = makeEvents(companies, fromDate, toDate);
   const okSources = sourceReports.filter(report => report.status === "ok");
   const failedSources = sourceReports.filter(report => report.status !== "ok");
+  const okMarkets = new Set(okSources.map(report => report.market).filter(Boolean));
   const requiredSourceGroups = [
     { label: "TWSE 上市", ids: ["twse-applylisting-local", "twse-applylisting-foreign", "twse-newlisting", "twse-newlisting-html"] },
     { label: "TPEX 上櫃", ids: ["tpex-mainboard-applicants"] },
@@ -278,19 +279,7 @@ async function main() {
     .map(group => group.label);
 
   if (missingRequired.length) {
-    console.log("Source reports:");
-    for (const report of sourceReports) {
-      console.log(`- ${report.id}: ${report.status}, rows=${report.rows || 0}, accepted=${report.acceptedRows || 0}`);
-      if (report.dateKeys && report.dateKeys.length) console.log(`  date keys: ${report.dateKeys.join(", ")}`);
-      if (report.urlReports && report.urlReports.length) {
-        for (const item of report.urlReports.filter(item => item.rows > 0).slice(0, 8)) {
-          console.log(`  used: ${item.rows} rows from ${item.url}`);
-        }
-      }
-      if (report.codes && report.codes.length) console.log(`  codes: ${report.codes.join(", ")}${report.moreCodes ? ` ... +${report.moreCodes}` : ""}`);
-      if (report.message) console.log(`  ${report.message}`);
-    }
-    throw new Error(`Required source(s) failed: ${missingRequired.join(", ")}. Aborting before touching Google Calendar.`);
+    console.warn(`Source group(s) failed: ${missingRequired.join(", ")}. Successful markets will sync; failed markets will keep existing Calendar events untouched.`);
   }
 
   if (!events.length) {
@@ -324,7 +313,7 @@ async function main() {
   const existingById = new Map(existing.map(item => [item.id, item]));
   const desiredIds = new Set(events.map(calendarEventId));
 
-  const stats = { created: 0, updated: 0, skipped: 0, deleted: 0 };
+  const stats = { created: 0, updated: 0, skipped: 0, deleted: 0, protected: 0 };
   for (const event of events) {
     const result = await upsertEvent(token, calendarId, event, existingById.get(calendarEventId(event)));
     stats[result] += 1;
@@ -332,12 +321,17 @@ async function main() {
 
   for (const item of existing) {
     if (!desiredIds.has(item.id)) {
+      const market = existingPrivateProperties(item).ipoMarket;
+      if (!okMarkets.has(market)) {
+        stats.protected += 1;
+        continue;
+      }
       const deleted = await deleteEvent(token, calendarId, item.id);
       if (deleted) stats.deleted += 1;
     }
   }
 
-  console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} unchanged, ${stats.deleted} deleted.`);
+  console.log(`Synced Google Calendar: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} unchanged, ${stats.deleted} deleted, ${stats.protected} protected.`);
   console.log(`Events: ${events.length}. Companies: ${companies.length}. Window: ${fromDate} to ${toDate}.`);
   const currentMonth = today.slice(0, 7);
   const summary = monthSummary(events, currentMonth);
