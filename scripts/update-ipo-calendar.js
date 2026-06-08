@@ -134,11 +134,10 @@ const SOURCES = [
       "https://www.tpex.org.tw/www/zh-tw/mainboard/applying/status/company?response=csv&charset=utf-8",
       "https://www.tpex.org.tw/www/zh-tw/mainboard/applying/status/company?response=csv",
       "https://www.tpex.org.tw/zh-tw/mainboard/applying/status/company?response=csv",
-      process.env.TPEX_MAINBOARD_APPLICANTS_URL,
-      "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
+      process.env.TPEX_MAINBOARD_APPLICANTS_URL
     ].filter(Boolean),
     excludeUrlPatterns: [/\/data\/menu\//i, /menu\.json/i],
-    includeUrlPatterns: [/\/mainboard\/applying\/status\/company/i, /tpex_esb_applicant_companies/i],
+    includeUrlPatterns: [/\/mainboard\/applying\/status\/company/i],
     fieldOrder: [
       "申請日期",
       "股票代號",
@@ -161,16 +160,25 @@ const SOURCES = [
     label: "興櫃",
     type: "auto",
     pageUrls: [
-      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html"
+      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html",
+      "https://www.tpex.org.tw/web/regular_emerging/emerging_stock/emerging_stock_list.php?l=zh-tw"
     ],
-    urls: [
-      process.env.TPEX_ESB_LEGACY_URL,
-      "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=115",
-      "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=2026",
-      process.env.TPEX_ESB_IPO_CSV_URL,
-      "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
-    ].filter(Boolean),
-    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i],
+    urls: (() => {
+      const westernYear = new Date().getFullYear();
+      const rocYear = westernYear - 1911;
+      const base = "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=";
+      return [
+        process.env.TPEX_ESB_LEGACY_URL,
+        `${base}${rocYear}`,
+        `${base}${westernYear}`,
+        `${base}${rocYear - 1}`,
+        `${base}${westernYear - 1}`,
+        process.env.TPEX_ESB_IPO_CSV_URL,
+        "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv",
+        "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
+      ].filter(Boolean);
+    })(),
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i, /tpex_esb_applicant_companies/i, /regular_emerging\/emerging_stock/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
     fieldOrder: ["序號", "股票代號", "公司簡稱", "登錄日期", "認購價格", "公開說明書", "網址"],
