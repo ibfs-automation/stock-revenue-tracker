@@ -173,6 +173,7 @@ const SOURCES = [
     includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
+    fieldOrder: ["序號", "股票代號", "公司簡稱", "登錄日期", "認購價格", "公開說明書", "網址"],
     dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期", "Date of listing", "Listing date"]
   }
 ];
@@ -444,6 +445,30 @@ function isNonListingSignalRow(source, row) {
   return /申請加入.*推薦證券商|推薦證券商.*申請加入|推薦證券商.*生效|加入.*推薦證券商|增為.*推薦證券商|推薦證券商.*異動/.test(text);
 }
 
+function rowFromPositionalCells(source, cells) {
+  if (!source || source.market !== "ESB") return null;
+  const values = (cells || []).map(cell => String(cell || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  if (values.length < 4) return null;
+
+  const codeIndex = values.findIndex(value => /^\d{4,6}$/.test(value));
+  if (codeIndex < 0) return null;
+  const dateIndex = values.findIndex((value, index) => index > codeIndex && !!parseTaiwanDate(value));
+  if (dateIndex < 0) return null;
+  const name = values.slice(codeIndex + 1, dateIndex).find(value => /[\u4e00-\u9fffA-Za-z]/.test(value) && !parseTaiwanDate(value));
+  if (!name) return null;
+
+  return {
+    股票代號: values[codeIndex],
+    公司代號: values[codeIndex],
+    證券代號: values[codeIndex],
+    公司簡稱: name,
+    證券簡稱: name,
+    股票名稱: name,
+    登錄日期: parseTaiwanDate(values[dateIndex]),
+    __rawText: values.join(" ")
+  };
+}
+
 function rowLooksLikeCandidate(source, row) {
   const text = JSON.stringify(row || "");
   if (!text || text.length < 8) return false;
@@ -473,6 +498,19 @@ function objectRows(payload) {
   if (payload && payload.result && Array.isArray(payload.result.data)) return payload.result.data;
 
   return [];
+}
+
+function normalizeParsedRowsForSource(source, rows) {
+  const output = [];
+
+  for (const row of rows || []) {
+    output.push(row);
+    const values = Array.isArray(row) ? row : (row && typeof row === "object" ? Object.values(row) : []);
+    const positional = rowFromPositionalCells(source, values);
+    if (positional) output.push(positional);
+  }
+
+  return output;
 }
 
 async function decodeResponseText(response) {
@@ -852,7 +890,7 @@ function parseRowsFromText(source, url, text, contentType = "") {
 
   for (const parse of parsers) {
     try {
-      const rows = parse();
+      const rows = normalizeParsedRowsForSource(source, parse());
       if (rows.length) return rows;
     } catch {
       // Try the next parser; official pages differ by endpoint.
@@ -1541,7 +1579,7 @@ async function collectCompanies() {
   for (const source of SOURCES) {
     try {
       const result = await fetchRowsFromFirstAvailable(source);
-      const normalizedRows = result.rows
+      const normalizedRows = normalizeParsedRowsForSource(source, result.rows)
         .map(row => normalizeRowForSource(source, row))
         .filter(row => rowLooksLikeCandidate(source, row));
       const normalized = normalizedRows
