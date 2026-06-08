@@ -167,13 +167,13 @@ const SOURCES = [
       process.env.TPEX_ESB_LEGACY_URL,
       "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=115",
       "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=2026",
-      process.env.TPEX_ESB_IPO_CSV_URL
+      process.env.TPEX_ESB_IPO_CSV_URL,
+      "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
     ].filter(Boolean),
-    excludeUrlPatterns: [/EmergingNewListPrice/i, /emerging_register\/.*(?:price|Price|認購)/i],
-    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i],
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
-    dateKeys: ["登錄日期", "登錄日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期", "Date of listing", "Listing date"]
+    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期", "Date of listing", "Listing date"]
   }
 ];
 
@@ -441,7 +441,7 @@ function normalizeCompanyNameFromText(text, code) {
 function isNonListingSignalRow(source, row) {
   if (!source || source.market !== "ESB") return false;
   const text = JSON.stringify(row || {});
-  return /認購價格|申請加入.*推薦證券商|推薦證券商.*申請加入|推薦證券商.*生效|加入.*推薦證券商/.test(text);
+  return /申請加入.*推薦證券商|推薦證券商.*申請加入|推薦證券商.*生效|加入.*推薦證券商|增為.*推薦證券商|推薦證券商.*異動/.test(text);
 }
 
 function rowLooksLikeCandidate(source, row) {
