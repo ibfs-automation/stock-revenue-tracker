@@ -463,9 +463,10 @@ function displayName(stock) {
   const code = stock.code || (isCodeId ? id : "");
 
   const name = (
-    (stock.revenue && stock.revenue.companyAbbreviation) ||
-    stock.name ||
     trackedName ||
+    stock.name ||
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
+    stock.legalName ||
     ""
   );
 
@@ -594,12 +595,17 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     }
   }
 
-  for (const item of dailyUpdates) {
-    item.names = mergeUnique([], item.names.map(name =>
-      displayNameByAlias.get(String(name)) || name
-    ));
-    item.count = item.names.length;
-  }
+for (const item of dailyUpdates) {
+  item.names = mergeUnique([], item.names.map(name => {
+    const alias = String(name);
+    const code = parseCodeFromDisplayName(alias);
+
+    return (code && displayNameByAlias.get(code)) ||
+      displayNameByAlias.get(alias) ||
+      name;
+  }));
+  item.count = item.names.length;
+}
 
   return {
     generatedAt: now.isoLike,
@@ -627,9 +633,9 @@ function excelValue(stock, key) {
 
 function excelCompanyName(stock) {
   return (
-    (stock.revenue && stock.revenue.companyAbbreviation) ||
     stock.name ||
-    stock.id ||
+    (stock.id && !/^\d+$/.test(String(stock.id)) ? stock.id : "") ||
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
     ""
   );
 }
