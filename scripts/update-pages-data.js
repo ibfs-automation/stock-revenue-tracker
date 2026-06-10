@@ -17,36 +17,10 @@ const COMPANY_PROFILE_URLS = [
   "https://mopsfin.twse.com.tw/opendata/t187ap03_O.csv",
   "https://mopsfin.twse.com.tw/opendata/t187ap03_R.csv"
 ];
-const MANUAL_BASELINES = {
-  "11504": {
-    baselineUpdatedCodes: ["3675", "8098", "1560", "3305", "9958", "6672", "4441"],
-    dailyUpdates: [
-      { dateLabel: "5/1", count: 0, names: [] },
-      { dateLabel: "5/2", count: 0, names: [] },
-      { dateLabel: "5/3", count: 0, names: [] },
-      { dateLabel: "5/4", count: 0, names: [] },
-      { dateLabel: "5/5", count: 0, names: [] },
-      {
-        dateLabel: "5/6",
-        count: 7,
-        names: [
-          "德微(3675)",
-          "慶康科技(8098)",
-          "中砂(1560)",
-          "昇貿(3305)",
-          "世紀鋼(9958)",
-          "騰輝電子-KY(6672)",
-          "振大環球(4441)"
-        ]
-      },
-      { dateLabel: "5/7", count: 0, names: [] },
-      { dateLabel: "5/8", count: 0, names: [] },
-      { dateLabel: "5/9", count: 0, names: [] },
-      { dateLabel: "5/10", count: 0, names: [] },
-      { dateLabel: "5/11", count: 0, names: [] }
-    ]
-  }
-};
+
+// 每月初第一次 run 前的種子資料，key 為 yymm（民國年月）
+// 當月 previousSnapshot 累積後此欄位不再使用，保留空物件即可
+const MANUAL_BASELINES = {};
 
 function taipeiParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -160,7 +134,7 @@ function parseCsv(text) {
 
 function decodeCsvBuffer(buffer) {
   const utf8 = new TextDecoder("utf-8").decode(buffer);
-  if (!utf8.includes("�")) return utf8;
+  if (!utf8.includes("")) return utf8;
 
   try {
     return new TextDecoder("big5").decode(buffer);
@@ -560,7 +534,8 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
   }
 
   const todayKey = `${now.month}/${now.day}`;
-  const canRecordToday = now.day >= 1 && now.day <= 11 && now.hour >= 17;
+  // 台北時間 16:00 後即開始記錄，避免 workflow 排隊延遲導致 hour=16 被跳過
+  const canRecordToday = now.day >= 1 && now.day <= 11 && now.hour >= 16;
 
   if (canRecordToday && dailyByDate.has(todayKey)) {
     const today = dailyByDate.get(todayKey);
@@ -595,21 +570,21 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     }
   }
 
-for (const item of dailyUpdates) {
-  item.names = mergeUnique([], item.names.map(name => {
-    const alias = String(name);
-    const code = parseCodeFromDisplayName(alias);
+  for (const item of dailyUpdates) {
+    item.names = mergeUnique([], item.names.map(name => {
+      const alias = String(name);
+      const code = parseCodeFromDisplayName(alias);
 
-    return (code && displayNameByAlias.get(code)) ||
-      displayNameByAlias.get(alias) ||
-      name;
-  }));
-  item.count = item.names.length;
-}
+      return (code && displayNameByAlias.get(code)) ||
+        displayNameByAlias.get(alias) ||
+        name;
+    }));
+    item.count = item.names.length;
+  }
 
   return {
     generatedAt: now.isoLike,
-    headline: `${canRecordToday ? "截止今日17:00" : "尚未到今日17:00"} ${target.month}月月營收`,
+    headline: `${canRecordToday ? "截止今日16:00後" : "尚未到今日16:00"} ${target.month}月月營收`,
     newlyUpdatedCount: updatedStocks.length,
     newlyUpdatedNames: updatedStocks.map(displayName).filter(Boolean),
     dailyUpdates,
@@ -619,6 +594,7 @@ for (const item of dailyUpdates) {
     baselineUpdatedCodes: [...announcedCodes]
   };
 }
+
 function excelReportFileName(target) {
   return `${MONTHLY_EXCEL_PREFIX}-${target.yymm}.xlsx`;
 }
@@ -676,7 +652,7 @@ async function buildMonthlyExcelReport(snapshot) {
   const fileName = excelReportFileName(snapshot.target);
   const filePath = path.join(OUTPUT_DIR, fileName);
   const publicPath = `data/${fileName}`;
-  const shouldGenerate = now.day === 11 && now.hour >= 17;
+  const shouldGenerate = now.day === 11 && now.hour >= 16;
 
   if (shouldGenerate) {
     const workbook = XLSX.utils.book_new();
@@ -776,7 +752,7 @@ async function buildSnapshot() {
     announcement: buildAnnouncement(stocks, target, previousSnapshot),
     schedule: {
       timeZone: TAIPEI_TIME_ZONE,
-      window: "每月 1 到 11 號，下午 5 點後每日自動檢查一次",
+      window: "每月 1 到 11 號，16:00 後每小時自動檢查一次",
       source: "公開資訊觀測站月營業收入資訊"
     },
     share: {
