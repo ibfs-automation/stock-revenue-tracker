@@ -244,6 +244,43 @@ async function upsertEvent(token, calendarId, event, existingEvent) {
   }
 }
 
+// Query Google Calendar by full-text search (no tag filter).
+// Used to find ESB "登錄興櫃" events that predate the extendedProperties tag
+// so they can be cleaned up after a company graduates to TPEX/TWSE.
+async function listEventsByQuery(token, calendarId, query, fromDate, toDate) {
+  const items = [];
+  let pageToken = "";
+
+  do {
+    const params = new URLSearchParams({
+      q: query,
+      singleEvents: "true",
+      showDeleted: "false",
+      maxResults: "2500",
+      timeMin: `${fromDate}T00:00:00+08:00`,
+      timeMax: `${addDays(toDate, 1)}T00:00:00+08:00`
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const payload = await googleRequest(
+      token,
+      "GET",
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`
+    );
+
+    items.push(...(payload.items || []));
+    pageToken = payload.nextPageToken || "";
+  } while (pageToken);
+
+  return items;
+}
+
+// Extract the 4-6 digit stock code from a calendar event summary like "敍豐(3485) 登錄興櫃".
+function codeFromSummary(summary) {
+  const match = String(summary || "").match(/\((\d{4,6})\)/);
+  return match ? match[1] : "";
+}
+
 async function deleteEvent(token, calendarId, eventId) {
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
   try {
@@ -333,6 +370,34 @@ async function main() {
       }
       const deleted = await deleteEvent(token, calendarId, item.id);
       if (deleted) stats.deleted += 1;
+    }
+  }
+
+  // Supplementary cleanup: find any "登錄興櫃" events (tagged or untagged) whose
+  // stock code now appears in a TPEX/TWSE desired event — these are companies that
+  // graduated from ESB and whose legacy ESB calendar event was never cleaned up.
+  const tpexTwseCodes = new Set(
+    events
+      .filter(e => e.market === "TWSE" || e.market === "TPEX")
+      .map(e => e.company && e.company.code)
+      .filter(Boolean)
+  );
+  if (tpexTwseCodes.size > 0 && DELETE_MISSING_EVENTS) {
+    try {
+      const esbCandidates = await listEventsByQuery(token, calendarId, "登錄興櫃", fromDate, toDate);
+      for (const item of esbCandidates) {
+        if (desiredIds.has(item.id)) continue;  // already in desired set, leave it
+        const code = codeFromSummary(item.summary);
+        if (code && tpexTwseCodes.has(code)) {
+          const deleted = await deleteEvent(token, calendarId, item.id);
+          if (deleted) {
+            stats.deleted += 1;
+            console.log(`  cleanup: deleted stale ESB event "${item.summary}" (${item.id})`);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Supplementary ESB cleanup failed (non-fatal): ${err.message}`);
     }
   }
 
