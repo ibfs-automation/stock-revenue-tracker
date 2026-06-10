@@ -375,9 +375,6 @@ function normalizeCompanyName(row, code) {
     const cleaned = String(candidate || "")
       .replace(new RegExp(`(^|[^\\d])${code}(?!\\d)`, "g"), " ")
       .replace(/[()（）]/g, " ")
-      // Strip annotation markers appended by data providers (e.g. TPEX marks companies
-      // applying for mainboard upgrade with *, ※, △ etc. — not part of the company name).
-      .replace(/[*＊※△▲▽▼◎●○★☆■□◆◇†‡#＃]+/g, "")
       .replace(/\s+/g, " ")
       .trim();
 
