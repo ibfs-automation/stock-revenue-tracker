@@ -26,7 +26,7 @@
         </div>
         <div>
           <span class="label">自動檢查</span>
-          <strong>每月 1-11 日 17:00 後</strong>
+          <strong>每月 1-11 日 16:30 後</strong>
         </div>
         <div>
           <span class="label">狀態</span>
@@ -36,18 +36,21 @@
           <span class="label">分享網址</span>
           <strong id="shareUrl">讀取中</strong>
         </div>
-            </section>
+      </section>
 
-           <section id="announcement" class="announcement" hidden>
-        <h2 id="announcementTitle">截止今日17:00</h2>
+      <section id="announcement" class="announcement" hidden>
+        <h2 id="announcementTitle">截止今日16:00後</h2>
         <div id="dailyUpdates" class="daily-updates"></div>
+        <p id="orphanedSection" hidden>
+          <strong>已公布（日期未分類）：</strong>
+          <span id="orphanedNames">無</span>
+        </p>
         <p>
           <strong id="pendingCount">0</strong>
           <span>家尚未公布，如下：</span>
           <span id="pendingNames">無</span>
         </p>
       </section>
-
 
       <form id="addForm" class="add-form">
         <label for="stockQuery">輸入台股代號或名稱</label>
@@ -78,6 +81,7 @@
           </tbody>
         </table>
       </section>
+
       <section id="excelDownload" class="excel-download" hidden>
         <div>
           <span class="label">月營收 Excel</span>
@@ -85,7 +89,7 @@
         </div>
         <a id="excelLink" href="#" download>下載 Excel</a>
       </section>
-      
+
       <section class="source-note">
         <strong>資料來源：</strong>
         <a href="https://mops.twse.com.tw/mops/#/web/t05st10_ifrs" target="_blank" rel="noreferrer">公開資訊觀測站「月營業收入資訊」</a>

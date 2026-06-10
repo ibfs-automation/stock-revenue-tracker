@@ -8,6 +8,8 @@ const shareUrl = document.querySelector("#shareUrl");
 const announcement = document.querySelector("#announcement");
 const announcementTitle = document.querySelector("#announcementTitle");
 const dailyUpdates = document.querySelector("#dailyUpdates");
+const orphanedSection = document.querySelector("#orphanedSection");
+const orphanedNames = document.querySelector("#orphanedNames");
 const pendingCount = document.querySelector("#pendingCount");
 const pendingNames = document.querySelector("#pendingNames");
 const excelDownload = document.querySelector("#excelDownload");
@@ -46,7 +48,7 @@ function render(snapshot) {
   pageStatus.textContent = snapshot.stocks.length ? `追蹤 ${snapshot.stocks.length} 檔` : "尚未加入股票";
   const networkUrl = snapshot.share && snapshot.share.networkUrls && snapshot.share.networkUrls[0];
   shareUrl.textContent = networkUrl || (snapshot.mode === "github-pages" ? "GitHub Pages" : "同機使用");
-    renderAnnouncement(snapshot.announcement);
+  renderAnnouncement(snapshot.announcement);
   renderExcelDownload(snapshot.excelReport);
 
   if (!snapshot.stocks.length) {
@@ -91,6 +93,7 @@ function stockDisplayName(stock) {
   if (name && code && name !== code) return `${name}(${code})`;
   return name || code || "";
 }
+
 function renderExcelDownload(report) {
   if (!report || !report.available || !report.file) {
     excelDownload.hidden = true;
@@ -102,6 +105,7 @@ function renderExcelDownload(report) {
   excelLink.href = report.file;
   excelLink.download = report.file.split("/").pop() || "";
 }
+
 function renderAnnouncement(data) {
   if (!data) {
     announcement.hidden = true;
@@ -111,6 +115,15 @@ function renderAnnouncement(data) {
   announcement.hidden = false;
   announcementTitle.textContent = data.headline || "截止今日17:00";
   dailyUpdates.innerHTML = formatDailyUpdates(data.dailyUpdates);
+
+  // 顯示未分類到日期的已公布公司（timing 遺留）
+  if (data.orphanedUpdatedCount > 0) {
+    orphanedSection.hidden = false;
+    orphanedNames.textContent = formatNameList(data.orphanedUpdatedNames);
+  } else {
+    orphanedSection.hidden = true;
+  }
+
   pendingCount.textContent = data.pendingCount || 0;
   pendingNames.textContent = formatNameList(data.pendingNames);
 }
@@ -125,9 +138,11 @@ function formatDailyUpdates(updates) {
     </p>
   `).join("");
 }
+
 function formatNameList(names) {
   return Array.isArray(names) && names.length ? names.join("、") : "無";
 }
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")

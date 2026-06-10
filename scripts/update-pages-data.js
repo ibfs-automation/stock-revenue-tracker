@@ -582,12 +582,19 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
     item.count = item.names.length;
   }
 
+  // 有 updated 狀態但未進任何 slot 的公司（timing bug 遺留）
+  const orphanedUpdated = updatedStocks.filter(
+    stock => !announcedCodes.has(String(stock.code))
+  );
+
   return {
     generatedAt: now.isoLike,
     headline: `${canRecordToday ? "截止今日16:00後" : "尚未到今日16:00"} ${target.month}月月營收`,
     newlyUpdatedCount: updatedStocks.length,
     newlyUpdatedNames: updatedStocks.map(displayName).filter(Boolean),
     dailyUpdates,
+    orphanedUpdatedCount: orphanedUpdated.length,
+    orphanedUpdatedNames: orphanedUpdated.map(displayName).filter(Boolean),
     pendingCount: pending.length,
     pendingNames: pending.map(displayName).filter(Boolean),
     baselineTargetYymm: target.yymm,
