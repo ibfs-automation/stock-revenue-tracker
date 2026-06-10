@@ -186,14 +186,19 @@ const SOURCES = [
       return [
         `${apiBase}${westernYear}`,
         `${apiBase}${westernYear - 1}`,
-        process.env.TPEX_ESB_IPO_CSV_URL,
-        "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
+        process.env.TPEX_ESB_IPO_CSV_URL
         // NOTE: tpex_esb_applicant_companies is intentionally excluded here.
         // Its ListingDate field is the TPEX 上櫃日期, not the ESB 登錄日期.
         // It is handled as a TPEX source (tpex-esb-graduates) instead.
+        //
+        // NOTE: EmergingNewListPrice.csv is intentionally excluded.
+        // That file is a fund/ETF subscription-price table used during the book-building
+        // period; its 掛牌日期 is the *planned* date and is never corrected if a listing
+        // is delayed or cancelled.  The latestEmerge API (fetched above) is the
+        // authoritative registry and does not carry stale planned-date entries.
       ].filter(Boolean);
     })(),
-    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /EmergingNewListPrice/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
     fieldOrder: ["序號", "股票代號", "公司簡稱", "登錄日期", "認購價格", "公開說明書", "網址"],
@@ -370,6 +375,9 @@ function normalizeCompanyName(row, code) {
     const cleaned = String(candidate || "")
       .replace(new RegExp(`(^|[^\\d])${code}(?!\\d)`, "g"), " ")
       .replace(/[()（）]/g, " ")
+      // Strip annotation markers appended by data providers (e.g. TPEX marks companies
+      // applying for mainboard upgrade with *, ※, △ etc. — not part of the company name).
+      .replace(/[*＊※△▲▽▼◎●○★☆■□◆◇†‡#＃]+/g, "")
       .replace(/\s+/g, " ")
       .trim();
 
@@ -445,7 +453,7 @@ function normalizeCompanyNameFromText(text, code) {
   const body = String(text || "").replace(/\s+/g, " ").trim();
   if (!body) return "";
 
-  const labeled = body.match(/(?:公司(?:簡稱|名稱)|證券(?:簡稱|名稱)|股票(?:簡稱|名稱)|簡稱|名稱)\s*[:：]?\s*([^\s，,、;；]+)/);
+  const labeled = body.match(/(?:公司(?:簡稱|名稱)|證券(?:簡稱|名稱)|股票(?:簡稱|名稱)|簡稱|名稱)\s*[：:]?\s*([^\s，,、;；]+)/);
   if (labeled && labeled[1]) {
     const cleaned = labeled[1].replace(/[()（）]/g, "").trim();
     if (cleaned && cleaned !== code && !parseTaiwanDate(cleaned)) return cleaned;
@@ -456,10 +464,10 @@ function normalizeCompanyNameFromText(text, code) {
     .replace(/\d{2,3}\s*(?:年|[./-])\s*\d{1,2}\s*(?:月|[./-])\s*\d{1,2}\s*(?:日)?/g, " ")
     .replace(new RegExp(`(^|[^\\d])${regexEscape(code)}(?!\\d)`, "g"), " ")
     .replace(/最近登錄興櫃公司|資料查詢|下載近期將掛牌股票認購價格|公司簡稱|公司名稱|證券簡稱|證券名稱|股票名稱|股票代號|證券代號|登錄日期|登錄日|掛牌日期|掛牌日|開始買賣日期|開始櫃檯買賣日期|興櫃|上興櫃|詳情|詳細資料/g, " ")
-    .replace(/[()（）:：，,、;；｜|\/\\]+/g, " ");
+    .replace(/[()（）：:，,、;；｜|\\/\\]+/g, " ");
 
   const tokens = withoutDates.split(/\s+/).filter(Boolean);
-  return tokens.find(token => /[一-鿿]/.test(token) && token.length <= 16 && !/日期|代號|名稱|查詢|資料|下載|公司$/.test(token)) || "";
+  return tokens.find(token => /[一-龥A-Za-z]/.test(token) && token.length <= 16 && !/日期|代號|名稱|查詢|資料|下載|公司$/.test(token)) || "";
 }
 
 function isNonListingSignalRow(source, row) {
@@ -477,7 +485,7 @@ function rowFromPositionalCells(source, cells) {
   if (codeIndex < 0) return null;
   const dateIndex = values.findIndex((value, index) => index > codeIndex && !!parseTaiwanDate(value));
   if (dateIndex < 0) return null;
-  const name = values.slice(codeIndex + 1, dateIndex).find(value => /[一-鿿A-Za-z]/.test(value) && !parseTaiwanDate(value));
+  const name = values.slice(codeIndex + 1, dateIndex).find(value => /[一-龥A-Za-z]/.test(value) && !parseTaiwanDate(value));
   if (!name) return null;
 
   return {
@@ -612,7 +620,7 @@ function pageDataCandidates(html, pageUrl) {
     }
   }
 
-  for (const match of text.matchAll(/["']([^"']*(?:response=|openapi|\.csv|\.json|download|storage)[^"']*)["']/gi)) {
+  for (const match of text.matchAll(/["']([^"']*(?:response=|openapi|\.csv|\.json|download|storage)[^"']*)['"]/gi)) {
     try {
       candidates.push(new URL(decodeHtml(match[1]), base).href);
     } catch {
@@ -742,6 +750,7 @@ function rowsFromRawText(source, url, text) {
     證券代號: code,
     公司簡稱: name,
     證券簡稱: name,
+    股票名稱: name,
     登錄日期: date,
     __rawText: body,
     __detailUrl: url
@@ -1141,7 +1150,7 @@ async function browserRowsForSource(source) {
           for (const element of rawCandidates) {
             const rawText = text(element);
             if (!rawText || rawText.length > 500 || seenTexts.has(rawText)) continue;
-            if (!/(^|[^\d])\d{4,6}(?!\d)/.test(rawText)) continue;
+            if (!(/(^|[^\d])\d{4,6}(?!\d)/.test(rawText))) continue;
             if (!/(20\d{2}[/-]\d{1,2}[/-]\d{1,2}|\d{2,3}\s*(?:年|[./-])\s*\d{1,2}\s*(?:月|[./-])\s*\d{1,2})/.test(rawText)) continue;
             seenTexts.add(rawText);
             const link = element.matches("a[href]") ? element : element.querySelector("a[href]");
