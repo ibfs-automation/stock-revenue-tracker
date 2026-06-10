@@ -501,6 +501,19 @@ function objectRows(payload) {
     return payload.data.map(row => Object.fromEntries(payload.fields.map((field, index) => [field, row[index]])));
   }
 
+  // TPEX tables format: { tables: [{ fields: [...], data: [[...], ...] }] }
+  if (payload && Array.isArray(payload.tables) && payload.tables.length) {
+    const allRows = [];
+    for (const table of payload.tables) {
+      if (Array.isArray(table.data) && Array.isArray(table.fields)) {
+        allRows.push(...table.data.map(row => Object.fromEntries(table.fields.map((field, index) => [field, row[index]]))));
+      } else if (Array.isArray(table.data)) {
+        allRows.push(...table.data);
+      }
+    }
+    if (allRows.length) return allRows;
+  }
+
   if (payload && Array.isArray(payload.data)) return payload.data;
   if (payload && Array.isArray(payload.result)) return payload.result;
   if (payload && payload.result && Array.isArray(payload.result.data)) return payload.result.data;
