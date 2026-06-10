@@ -1702,6 +1702,22 @@ function dedupeCompanies(companies) {
     byKey.set(key, byKey.has(key) ? mergeCompany(byKey.get(key), company) : company);
   }
 
+  // When a company graduates from ESB (興櫃) to TPEX mainboard or TWSE, it remains
+  // in the ESB dataset alongside the higher-market listing. Suppress ESB entries for
+  // any code that also appears in TPEX or TWSE — a company can only trade on one
+  // market at a time and the higher-market event is the relevant one.
+  const higherMarketCodes = new Set(
+    [...byKey.values()]
+      .filter(c => c.market === "TWSE" || c.market === "TPEX")
+      .map(c => c.code)
+      .filter(Boolean)
+  );
+  for (const [key, company] of byKey) {
+    if (company.market === "ESB" && higherMarketCodes.has(company.code)) {
+      byKey.delete(key);
+    }
+  }
+
   return [...byKey.values()].sort((a, b) => a.listedDate.localeCompare(b.listedDate) || a.market.localeCompare(b.market));
 }
 
