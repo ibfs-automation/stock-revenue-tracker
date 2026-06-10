@@ -3,6 +3,7 @@ name: Update revenue data and publish Pages
 on:
   workflow_dispatch:
   schedule:
+    - cron: "30 8 1-11 * *"    # 台北 16:30（10日用於產出 Excel）
     - cron: "0 9 1-11 * *"     # 台北 17:00
     - cron: "0 10 1-11 * *"    # 台北 18:00
     - cron: "0 11 1-11 * *"    # 台北 19:00
@@ -50,18 +51,28 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git fetch origin main
-          git reset --hard origin/main
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
 
-          node scripts/update-pages-data.js
+            node scripts/update-pages-data.js
 
-          git add public/data
-          if git diff --cached --quiet; then
-            echo "No revenue data changes"
-          else
+            git add public/data
+            if git diff --cached --quiet; then
+              echo "No revenue data changes"
+              break
+            fi
+
             git commit -m "Update revenue snapshot [skip ci]"
-            git push
-          fi
+            if git push; then
+              echo "Pushed on attempt $attempt"
+              break
+            fi
+
+            echo "Push rejected on attempt $attempt, retrying..."
+            git reset HEAD~1
+            sleep $((attempt * 10))
+          done
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

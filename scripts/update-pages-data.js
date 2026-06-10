@@ -651,7 +651,8 @@ async function buildMonthlyExcelReport(snapshot) {
   const fileName = excelReportFileName(snapshot.target);
   const filePath = path.join(OUTPUT_DIR, fileName);
   const publicPath = `data/${fileName}`;
-  const shouldGenerate = now.day === 11 && now.hour >= 16;
+  // 每月 10 日 16:30 後產出 Excel
+  const shouldGenerate = now.day === 10 && (now.hour > 16 || (now.hour === 16 && now.minute >= 30));
 
   if (shouldGenerate) {
     const workbook = XLSX.utils.book_new();
