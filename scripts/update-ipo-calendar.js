@@ -155,6 +155,22 @@ const SOURCES = [
     dateKeys: ["股票上櫃買賣日期", "上櫃買賣日期", "櫃買賣日期", "listedDate", "ListingDate"]
   },
   {
+    // tpex_esb_applicant_companies lists companies that applied through ESB and are now
+    // confirmed for TPEX mainboard listing. The ListingDate field is the TPEX 上櫃日期,
+    // NOT the ESB 登錄日期. Treating this as a TPEX source ensures dedupeCompanies can
+    // suppress the corresponding ESB entry for the same code.
+    id: "tpex-esb-graduates",
+    market: "TPEX",
+    label: "上櫃",
+    type: "json",
+    pageUrls: [],
+    urls: [
+      "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
+    ],
+    includeUrlPatterns: [/tpex_esb_applicant_companies/i],
+    dateKeys: ["ListingDate", "上櫃買賣日期", "股票上櫃買賣日期", "掛牌日期"]
+  },
+  {
     id: "tpex-esb-ipo",
     market: "ESB",
     label: "興櫃",
@@ -171,15 +187,17 @@ const SOURCES = [
         `${apiBase}${westernYear}`,
         `${apiBase}${westernYear - 1}`,
         process.env.TPEX_ESB_IPO_CSV_URL,
-        "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv",
-        "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
+        "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv"
+        // NOTE: tpex_esb_applicant_companies is intentionally excluded here.
+        // Its ListingDate field is the TPEX 上櫃日期, not the ESB 登錄日期.
+        // It is handled as a TPEX source (tpex-esb-graduates) instead.
       ].filter(Boolean);
     })(),
-    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /EmergingNewListPrice/i, /tpex_esb_applicant_companies/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /EmergingNewListPrice/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
     fieldOrder: ["序號", "股票代號", "公司簡稱", "登錄日期", "認購價格", "公開說明書", "網址"],
-    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期", "Date of listing", "Listing date"]
+    dateKeys: ["登錄日期", "登錄日", "預計登錄日期", "預計掛牌日期", "掛牌日期", "掛牌日", "興櫃日期", "興櫃登錄日期", "興櫃掛牌日期", "上興櫃日期", "櫃檯買賣日期", "櫃檯買賣開始日", "櫃檯買賣開始日期", "股票開始櫃檯買賣日期", "開始櫃檯買賣日期", "開始買賣日", "開始買賣日期", "興櫃買賣開始日", "興櫃買賣開始日期", "興櫃股票櫃檯買賣開始日期"]
   }
 ];
 
