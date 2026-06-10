@@ -160,25 +160,22 @@ const SOURCES = [
     label: "興櫃",
     type: "auto",
     pageUrls: [
-      "https://www.tpex.org.tw/zh-tw/esb/listed/ipo.html",
       "https://www.tpex.org.tw/web/regular_emerging/emerging_stock/emerging_stock_list.php?l=zh-tw"
     ],
     urls: (() => {
       const westernYear = new Date().getFullYear();
-      const rocYear = westernYear - 1911;
-      const base = "https://www.tpex.org.tw/web/regular_emerging/apply_schedule/applicant_emerging/applicant_emerging_companies.php?l=zh-tw&stk_code=&select_year=";
+      // latestEmerge supports GET and returns {tables:[{fields,data}]} for the given calendar year.
+      // Fetching two years covers the year-end boundary (e.g. companies listed in Dec of prior year).
+      const apiBase = "https://www.tpex.org.tw/www/zh-tw/company/latestEmerge?code=&id=&response=json&date=";
       return [
-        process.env.TPEX_ESB_LEGACY_URL,
-        `${base}${rocYear}`,
-        `${base}${westernYear}`,
-        `${base}${rocYear - 1}`,
-        `${base}${westernYear - 1}`,
+        `${apiBase}${westernYear}`,
+        `${apiBase}${westernYear - 1}`,
         process.env.TPEX_ESB_IPO_CSV_URL,
         "https://www.tpex.org.tw/storage/emerging_register/EmergingNewListPrice.csv",
         "https://www.tpex.org.tw/openapi/v1/tpex_esb_applicant_companies"
       ].filter(Boolean);
     })(),
-    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /applicant_emerging/i, /regular_emerging\/apply_schedule/i, /EmergingNewListPrice/i, /tpex_esb_applicant_companies/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
+    includeUrlPatterns: [/\/esb\/listed\/ipo/i, /EmergingNewListPrice/i, /tpex_esb_applicant_companies/i, /regular_emerging\/emerging_stock/i, /\/company\/latestEmerge/i],
     detailLinkPattern: /\/esb\/listed\/ipo\/detail\.html/i,
     allowRawTextRows: true,
     fieldOrder: ["序號", "股票代號", "公司簡稱", "登錄日期", "認購價格", "公開說明書", "網址"],
@@ -441,10 +438,10 @@ function normalizeCompanyNameFromText(text, code) {
     .replace(/\d{2,3}\s*(?:年|[./-])\s*\d{1,2}\s*(?:月|[./-])\s*\d{1,2}\s*(?:日)?/g, " ")
     .replace(new RegExp(`(^|[^\\d])${regexEscape(code)}(?!\\d)`, "g"), " ")
     .replace(/最近登錄興櫃公司|資料查詢|下載近期將掛牌股票認購價格|公司簡稱|公司名稱|證券簡稱|證券名稱|股票名稱|股票代號|證券代號|登錄日期|登錄日|掛牌日期|掛牌日|開始買賣日期|開始櫃檯買賣日期|興櫃|上興櫃|詳情|詳細資料/g, " ")
-    .replace(/[()（）:：，,、;；｜|/\\]+/g, " ");
+    .replace(/[()（）:：，,、;；｜|\/\\]+/g, " ");
 
   const tokens = withoutDates.split(/\s+/).filter(Boolean);
-  return tokens.find(token => /[\u4e00-\u9fff]/.test(token) && token.length <= 16 && !/日期|代號|名稱|查詢|資料|下載|公司$/.test(token)) || "";
+  return tokens.find(token => /[一-鿿]/.test(token) && token.length <= 16 && !/日期|代號|名稱|查詢|資料|下載|公司$/.test(token)) || "";
 }
 
 function isNonListingSignalRow(source, row) {
@@ -462,7 +459,7 @@ function rowFromPositionalCells(source, cells) {
   if (codeIndex < 0) return null;
   const dateIndex = values.findIndex((value, index) => index > codeIndex && !!parseTaiwanDate(value));
   if (dateIndex < 0) return null;
-  const name = values.slice(codeIndex + 1, dateIndex).find(value => /[\u4e00-\u9fffA-Za-z]/.test(value) && !parseTaiwanDate(value));
+  const name = values.slice(codeIndex + 1, dateIndex).find(value => /[一-鿿A-Za-z]/.test(value) && !parseTaiwanDate(value));
   if (!name) return null;
 
   return {
@@ -494,22 +491,43 @@ function rowLooksLikeCandidate(source, row) {
   return (hasCode && (hasNamedKey || hasDate)) || (hasCode && /登錄|興櫃|上櫃|上市|買賣|掛牌|櫃檯/.test(text));
 }
 
+// Recursively find all {fields: string[], data: array[]} blocks at any nesting depth.
+// This handles any JSON structure a data provider may use — flat, wrapped in "tables",
+// wrapped in "result", or any other key — without needing per-site special cases.
+function findFieldsDataBlocks(obj, depth = 0) {
+  if (!obj || typeof obj !== "object" || depth > 6) return [];
+  const blocks = [];
+  if (Array.isArray(obj)) {
+    for (const item of obj) blocks.push(...findFieldsDataBlocks(item, depth + 1));
+  } else {
+    if (
+      Array.isArray(obj.fields) && obj.fields.length > 0 &&
+      Array.isArray(obj.data) && obj.data.length > 0
+    ) {
+      blocks.push(obj);
+    }
+    for (const key of Object.keys(obj)) {
+      if (obj[key] && typeof obj[key] === "object") {
+        blocks.push(...findFieldsDataBlocks(obj[key], depth + 1));
+      }
+    }
+  }
+  return blocks;
+}
+
 function objectRows(payload) {
   if (Array.isArray(payload)) return payload;
 
-  if (payload && Array.isArray(payload.data) && Array.isArray(payload.fields)) {
-    return payload.data.map(row => Object.fromEntries(payload.fields.map((field, index) => [field, row[index]])));
-  }
-
-  // TPEX tables format: { tables: [{ fields: [...], data: [[...], ...] }] }
-  if (payload && Array.isArray(payload.tables) && payload.tables.length) {
+  // Generic recursive scan: find any {fields, data} block at any depth
+  const blocks = findFieldsDataBlocks(payload);
+  if (blocks.length) {
     const allRows = [];
-    for (const table of payload.tables) {
-      if (Array.isArray(table.data) && Array.isArray(table.fields)) {
-        allRows.push(...table.data.map(row => Object.fromEntries(table.fields.map((field, index) => [field, row[index]]))));
-      } else if (Array.isArray(table.data)) {
-        allRows.push(...table.data);
-      }
+    for (const block of blocks) {
+      allRows.push(...block.data.map(row =>
+        Array.isArray(row)
+          ? Object.fromEntries(block.fields.map((field, index) => [field, row[index]]))
+          : row
+      ));
     }
     if (allRows.length) return allRows;
   }
@@ -551,7 +569,7 @@ async function decodeResponseText(response) {
   if (/utf-?8/i.test(charset)) return decode("utf-8");
 
   const utf8 = decode("utf-8");
-  if (utf8.includes("\uFFFD") || (!/[公司股票登錄上市上櫃]/.test(utf8) && buffer.length > 0)) {
+  if (utf8.includes("�") || (!/[公司股票登錄上市上櫃]/.test(utf8) && buffer.length > 0)) {
     const big5 = decode("big5");
     if (/[公司股票登錄上市上櫃]/.test(big5)) return big5;
   }
@@ -599,7 +617,7 @@ function pageDataCandidates(html, pageUrl) {
   }
 
   return uniqueValues(candidates).filter(url => (
-    /response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|storage/i.test(url)
+    /response=|openapi|\.csv(?:$|[?#])|\.json(?:$|[?#])|download|api/i.test(url)
   ));
 }
 
@@ -864,7 +882,7 @@ async function fetchJsonFromFirstAvailable(source) {
       }
 
       const text = await decodeResponseText(response);
-      const payload = JSON.parse(text.replace(/^\uFEFF/, ""));
+      const payload = JSON.parse(text.replace(/^﻿/, ""));
       return { url, rows: objectRows(payload) };
     } catch (error) {
       errors.push(`${url} ${error.message}`);
@@ -893,7 +911,7 @@ async function fetchTextFromUrl(url, accept) {
 }
 
 function parseRowsFromText(source, url, text, contentType = "") {
-  const trimmed = String(text || "").replace(/^\uFEFF/, "").trim();
+  const trimmed = String(text || "").replace(/^﻿/, "").trim();
   const parsers = [];
 
   if (source.type === "json" || /json/i.test(contentType) || /^[{[]/.test(trimmed)) {
@@ -1295,7 +1313,7 @@ async function fetchAutoFromFirstAvailable(source) {
 
       const text = await decodeResponseText(response);
       const contentType = response.headers.get("content-type") || "";
-      const trimmed = text.replace(/^\uFEFF/, "").trim();
+      const trimmed = text.replace(/^﻿/, "").trim();
       let rows = [];
 
       if (/json/i.test(contentType) || /^[{[]/.test(trimmed)) {
@@ -1333,7 +1351,7 @@ async function fetchAutoFromFirstAvailable(source) {
 }
 
 function detectDelimiter(text) {
-  const firstLine = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0] || "";
+  const firstLine = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] || "";
   const candidates = [",", ";", "\t"];
   let best = ",";
   let bestCount = -1;
@@ -1369,7 +1387,7 @@ function parseCsv(text) {
   let quoted = false;
 
   const pushValue = () => {
-    row.push(value.replace(/^\uFEFF/, ""));
+    row.push(value.replace(/^﻿/, ""));
     value = "";
   };
   const pushRow = () => {
@@ -1517,7 +1535,7 @@ async function fetchHtmlFromFirstAvailable(source) {
       const text = await decodeResponseText(response);
       if (!/^\s*</.test(text)) {
         try {
-          return { url, rows: objectRows(JSON.parse(text.replace(/^\uFEFF/, ""))) };
+          return { url, rows: objectRows(JSON.parse(text.replace(/^﻿/, ""))) };
         } catch {
           // Fall through to HTML table parsing error below.
         }
