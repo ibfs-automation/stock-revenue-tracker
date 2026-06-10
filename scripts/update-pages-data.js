@@ -134,7 +134,7 @@ function parseCsv(text) {
 
 function decodeCsvBuffer(buffer) {
   const utf8 = new TextDecoder("utf-8").decode(buffer);
-  if (!utf8.includes("")) return utf8;
+  if (!utf8.includes("�")) return utf8;
 
   try {
     return new TextDecoder("big5").decode(buffer);
@@ -641,10 +641,9 @@ function buildMonthlyExcelRows(stocks, target) {
     ["備註/營收變化原因說明", stock => excelValue(stock, "備註/營收變化原因說明")]
   ];
 
-  return fields.map(([label, getter]) => [
-    label,
-    ...stocks.map(stock => getter(stock))
-  ]);
+  const headers = fields.map(([label]) => label);
+  const rows = stocks.map(stock => fields.map(([, getter]) => getter(stock)));
+  return [headers, ...rows];
 }
 
 async function buildMonthlyExcelReport(snapshot) {
@@ -661,8 +660,19 @@ async function buildMonthlyExcelReport(snapshot) {
     );
 
     worksheet["!cols"] = [
-      { wch: 26 },
-      ...snapshot.stocks.map(() => ({ wch: 18 }))
+      { wch: 10 }, // 公司代號
+      { wch: 16 }, // 公司名稱
+      { wch: 8 },  // 市場別
+      { wch: 10 }, // 資料年月
+      { wch: 16 }, // 本月
+      { wch: 16 }, // 去年同期
+      { wch: 18 }, // 本月增減金額
+      { wch: 18 }, // 本月增減百分比
+      { wch: 16 }, // 本年累計
+      { wch: 16 }, // 去年累計
+      { wch: 18 }, // 累計增減金額
+      { wch: 18 }, // 累計增減百分比
+      { wch: 36 }, // 備註/營收變化原因說明
     ];
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "月營收");
