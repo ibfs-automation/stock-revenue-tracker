@@ -3,14 +3,20 @@ name: Update revenue data and publish Pages
 on:
   workflow_dispatch:
   schedule:
-    - cron: "40,50 8 1-11 * *"
-    - cron: "0 9 1-11 * *"
+    - cron: "0 9 1-11 * *"     # 台北 17:00
+    - cron: "0 10 1-11 * *"    # 台北 18:00
+    - cron: "0 11 1-11 * *"    # 台北 19:00
+    - cron: "0 12 1-11 * *"    # 台北 20:00
+    - cron: "0 13 1-11 * *"    # 台北 21:00
   push:
     branches:
       - main
-    paths-ignore:
-      - "public/data/revenue.json"
-      - "public/data/monthly-revenue-*.xlsx"
+    paths:
+      - "tracked-stocks.json"
+      - "public/index.html"
+      - "public/app.js"
+      - "public/styles.css"
+      - "scripts/update-pages-data.js"
 
 permissions:
   contents: write
