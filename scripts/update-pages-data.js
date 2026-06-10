@@ -436,10 +436,11 @@ function displayName(stock) {
   const trackedName = id && !isCodeId ? id : "";
   const code = stock.code || (isCodeId ? id : "");
 
+  // 優先用 companyAbbreviation（MOPS 回傳簡稱），避免 stock.name 包含全名
   const name = (
     trackedName ||
-    stock.name ||
     (stock.revenue && stock.revenue.companyAbbreviation) ||
+    stock.name ||
     stock.legalName ||
     ""
   );
@@ -616,9 +617,9 @@ function excelValue(stock, key) {
 
 function excelCompanyName(stock) {
   return (
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
     stock.name ||
     (stock.id && !/^\d+$/.test(String(stock.id)) ? stock.id : "") ||
-    (stock.revenue && stock.revenue.companyAbbreviation) ||
     ""
   );
 }
