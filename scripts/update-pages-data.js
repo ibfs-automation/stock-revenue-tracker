@@ -328,6 +328,7 @@ function normalizeRevenueResult(company, target, mopsResult) {
   if (mopsResult.code !== 200 || !mopsResult.result) {
     return {
       ...base,
+      officialDatetime: null,
       status: "pending",
       verified: false,
       reason: mopsResult.message || "尚未公布"
@@ -339,6 +340,7 @@ function normalizeRevenueResult(company, target, mopsResult) {
   if (reportedYymm !== target.yymm) {
     return {
       ...base,
+      officialDatetime: null,
       status: "pending",
       verified: false,
       reportedYymm,
@@ -436,7 +438,6 @@ function displayName(stock) {
   const trackedName = id && !isCodeId ? id : "";
   const code = stock.code || (isCodeId ? id : "");
 
-  // 優先用 companyAbbreviation（MOPS 回傳簡稱），避免 stock.name 包含全名
   const name = (
     trackedName ||
     (stock.revenue && stock.revenue.companyAbbreviation) ||
@@ -617,9 +618,9 @@ function excelValue(stock, key) {
 
 function excelCompanyName(stock) {
   return (
-    (stock.revenue && stock.revenue.companyAbbreviation) ||
     stock.name ||
     (stock.id && !/^\d+$/.test(String(stock.id)) ? stock.id : "") ||
+    (stock.revenue && stock.revenue.companyAbbreviation) ||
     ""
   );
 }
@@ -659,7 +660,6 @@ async function buildMonthlyExcelReport(snapshot) {
   const fileName = excelReportFileName(snapshot.target);
   const filePath = path.join(OUTPUT_DIR, fileName);
   const publicPath = `data/${fileName}`;
-  // 每月 10 日 16:30 後產出 Excel
   const shouldGenerate = now.day === 10 && (now.hour > 16 || (now.hour === 16 && now.minute >= 30));
 
   if (shouldGenerate) {
