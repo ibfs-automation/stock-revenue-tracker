@@ -205,6 +205,11 @@ addForm.addEventListener("submit", async event => {
 });
 
 refreshBtn.addEventListener("click", async () => {
+  if (shareUrl.textContent === "GitHub Pages") {
+    window.open("https://github.com/jjerry0519/stock-revenue-tracker/actions/workflows/main.yml", "_blank");
+    return;
+  }
+
   refreshBtn.disabled = true;
   pageStatus.textContent = "正在檢查";
 
