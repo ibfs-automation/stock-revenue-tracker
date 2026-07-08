@@ -205,17 +205,17 @@ addForm.addEventListener("submit", async event => {
 });
 
 refreshBtn.addEventListener("click", async () => {
-  if (shareUrl.textContent === "GitHub Pages") {
-    window.open("https://github.com/jjerry0519/stock-revenue-tracker/actions/workflows/main.yml", "_blank");
-    return;
-  }
-
   refreshBtn.disabled = true;
   pageStatus.textContent = "正在檢查";
 
   try {
-    const result = await requestJson("/api/refresh", { method: "POST" });
-    render(result.snapshot);
+    if (shareUrl.textContent === "GitHub Pages") {
+      const snapshot = await requestJson(`./data/revenue.json?t=${Date.now()}`);
+      render(snapshot);
+    } else {
+      const result = await requestJson("/api/refresh", { method: "POST" });
+      render(result.snapshot);
+    }
   } catch (error) {
     pageStatus.textContent = error.message;
   } finally {
