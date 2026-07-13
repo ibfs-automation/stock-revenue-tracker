@@ -759,7 +759,8 @@ async function buildMonthlyExcelReport(snapshot, excelDay = 10) {
 async function buildSnapshot() {
   const previousSnapshot = await readPreviousSnapshot();
   const target = targetRevenueMonth();
-  const excelDay = await findExcelDay(target.westernYear, target.month);
+  const nowForExcel = taipeiParts();
+  const excelDay = await findExcelDay(nowForExcel.year, nowForExcel.month);
   const companyProfiles = await readCompanyProfiles();
   const queries = await readTrackedStocks(companyProfiles);
   const stocks = [];
