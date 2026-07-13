@@ -537,7 +537,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
 
   const todayKey = `${now.month}/${now.day}`;
   // 台北時間 16:00 後即開始記錄，避免 workflow 排隊延遲導致 hour=16 被跳過
-  const canRecordToday = now.day >= 1 && now.day <= 11 && now.hour >= 16;
+  const canRecordToday = now.day >= 1 && now.day <= 13 && now.hour >= 16;
 
   if (canRecordToday && dailyByDate.has(todayKey)) {
     const today = dailyByDate.get(todayKey);
@@ -660,7 +660,7 @@ async function buildMonthlyExcelReport(snapshot) {
   const fileName = excelReportFileName(snapshot.target);
   const filePath = path.join(OUTPUT_DIR, fileName);
   const publicPath = `data/${fileName}`;
-  const shouldGenerate = now.day === 10 && (now.hour > 16 || (now.hour === 16 && now.minute >= 30));
+  const shouldGenerate = (now.day === 10 || now.day === 13) && (now.hour > 16 || (now.hour === 16 && now.minute >= 30));
 
   if (shouldGenerate) {
     const workbook = XLSX.utils.book_new();

@@ -3,12 +3,12 @@ name: Update revenue data and publish Pages
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 8 1-11 * *"    # 台北 16:30（10日用於產出 Excel）
-    - cron: "0 9 1-11 * *"     # 台北 17:00
-    - cron: "0 10 1-11 * *"    # 台北 18:00
-    - cron: "0 11 1-11 * *"    # 台北 19:00
-    - cron: "0 12 1-11 * *"    # 台北 20:00
-    - cron: "0 13 1-11 * *"    # 台北 21:00
+    - cron: "30 8 1-13 * *"    # 台北 16:30（10、13日用於產出 Excel）
+    - cron: "0 9 1-13 * *"     # 台北 17:00
+    - cron: "0 10 1-13 * *"    # 台北 18:00
+    - cron: "0 11 1-13 * *"    # 台北 19:00
+    - cron: "0 12 1-13 * *"    # 台北 20:00
+    - cron: "0 13 1-13 * *"    # 台北 21:00
   push:
     branches:
       - main
