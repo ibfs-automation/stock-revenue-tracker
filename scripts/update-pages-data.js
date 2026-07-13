@@ -22,6 +22,11 @@ const COMPANY_PROFILE_URLS = [
 // 當月 previousSnapshot 累積後此欄位不再使用，保留空物件即可
 const MANUAL_BASELINES = {};
 
+// 臨時休市日（颱風假等當天公告、TWSE 預排日曆不含的日期），格式 "YYYY-MM-DD"
+const EXTRA_HOLIDAYS = new Set([
+  "2026-07-10" // 颱風假
+]);
+
 async function fetchTwseHolidays(year) {
   try {
     const response = await fetch(
@@ -51,7 +56,7 @@ async function findExcelDay(westernYear, month) {
   for (let d = 10; d <= 20; d++) {
     const dateStr = `${westernYear}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const dow = new Date(dateStr).getDay(); // 0=Sun, 6=Sat
-    if (dow !== 0 && dow !== 6 && !holidays.has(dateStr)) return d;
+    if (dow !== 0 && dow !== 6 && !holidays.has(dateStr) && !EXTRA_HOLIDAYS.has(dateStr)) return d;
   }
   return 10; // 保底
 }
