@@ -22,6 +22,40 @@ const COMPANY_PROFILE_URLS = [
 // 當月 previousSnapshot 累積後此欄位不再使用，保留空物件即可
 const MANUAL_BASELINES = {};
 
+async function fetchTwseHolidays(year) {
+  try {
+    const response = await fetch(
+      `https://www.twse.com.tw/rwd/zh/holidaySchedule/holidaySchedule?response=json&strYmd=${year}0101`,
+      { headers: { "User-Agent": "Mozilla/5.0" } }
+    );
+    if (!response.ok) return new Set();
+    const json = await response.json();
+    const rows = (json.data || []);
+    const holidays = new Set();
+    for (const row of rows) {
+      // TWSE 回傳格式：每列第一欄為 "YYYY/MM/DD" 或 "MM/DD" 等，取前者
+      const raw = String(row[0] || "").trim();
+      // 統一轉為 "YYYY-MM-DD"
+      const m = raw.match(/(\d{4})[\/\-](\d{2})[\/\-](\d{2})/);
+      if (m) holidays.add(`${m[1]}-${m[2]}-${m[3]}`);
+    }
+    return holidays;
+  } catch {
+    return new Set();
+  }
+}
+
+// 找當月 10 號起第一個交易日（非週末、非 TWSE 休市日）
+async function findExcelDay(westernYear, month) {
+  const holidays = await fetchTwseHolidays(westernYear);
+  for (let d = 10; d <= 20; d++) {
+    const dateStr = `${westernYear}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const dow = new Date(dateStr).getDay(); // 0=Sun, 6=Sat
+    if (dow !== 0 && dow !== 6 && !holidays.has(dateStr)) return d;
+  }
+  return 10; // 保底
+}
+
 function taipeiParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: TAIPEI_TIME_ZONE,
@@ -499,7 +533,7 @@ function announcedCodesFromDailyUpdates(dailyByDate) {
   return codes;
 }
 
-function buildAnnouncement(stocks, target, previousSnapshot) {
+function buildAnnouncement(stocks, target, previousSnapshot, excelDay = 10) {
   const now = taipeiParts();
   const pending = stocks.filter(stock => stock.lastStatus !== "updated");
   const updatedStocks = stocks.filter(stock => stock.lastStatus === "updated");
@@ -537,7 +571,7 @@ function buildAnnouncement(stocks, target, previousSnapshot) {
 
   const todayKey = `${now.month}/${now.day}`;
   // 台北時間 16:00 後即開始記錄，避免 workflow 排隊延遲導致 hour=16 被跳過
-  const canRecordToday = now.day >= 1 && now.day <= 13 && now.hour >= 16;
+  const canRecordToday = now.day >= 1 && now.day <= excelDay && now.hour >= 16;
 
   if (canRecordToday && dailyByDate.has(todayKey)) {
     const today = dailyByDate.get(todayKey);
@@ -655,12 +689,12 @@ function buildMonthlyExcelRows(stocks, target) {
   return [headers, ...rows];
 }
 
-async function buildMonthlyExcelReport(snapshot) {
+async function buildMonthlyExcelReport(snapshot, excelDay = 10) {
   const now = taipeiParts();
   const fileName = excelReportFileName(snapshot.target);
   const filePath = path.join(OUTPUT_DIR, fileName);
   const publicPath = `data/${fileName}`;
-  const shouldGenerate = (now.day === 10 || now.day === 13) && (now.hour > 16 || (now.hour === 16 && now.minute >= 30));
+  const shouldGenerate = now.day === excelDay && (now.hour > 16 || (now.hour === 16 && now.minute >= 30));
 
   if (shouldGenerate) {
     const workbook = XLSX.utils.book_new();
@@ -720,6 +754,7 @@ async function buildMonthlyExcelReport(snapshot) {
 async function buildSnapshot() {
   const previousSnapshot = await readPreviousSnapshot();
   const target = targetRevenueMonth();
+  const excelDay = await findExcelDay(target.westernYear, target.month);
   const companyProfiles = await readCompanyProfiles();
   const queries = await readTrackedStocks(companyProfiles);
   const stocks = [];
@@ -764,11 +799,11 @@ async function buildSnapshot() {
     }
   }
 
-  return {
+  const snapshot = {
     mode: "github-pages",
     stocks,
     target,
-    announcement: buildAnnouncement(stocks, target, previousSnapshot),
+    announcement: buildAnnouncement(stocks, target, previousSnapshot, excelDay),
     schedule: {
       timeZone: TAIPEI_TIME_ZONE,
       window: "每月 1 到 11 號，16:00 後每小時自動檢查一次",
@@ -780,12 +815,14 @@ async function buildSnapshot() {
     },
     updatedAt: taipeiParts().isoLike
   };
+
+  return { snapshot, excelDay };
 }
 
 async function main() {
-  const snapshot = await buildSnapshot();
+  const { snapshot, excelDay } = await buildSnapshot();
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
-  snapshot.excelReport = await buildMonthlyExcelReport(snapshot);
+  snapshot.excelReport = await buildMonthlyExcelReport(snapshot, excelDay);
   await fs.writeFile(OUTPUT_PATH, JSON.stringify(snapshot, null, 2), "utf8");
   console.log(`Wrote ${OUTPUT_PATH}`);
   console.log(`Tracked stocks: ${snapshot.stocks.length}`);
