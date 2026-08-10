@@ -7,7 +7,7 @@
       "name": "友威科",
       "legalName": "友威科技股份有限公司",
       "marketTitle": "31",
-      "lastCheckedAt": "2026-08-10T16:32:48+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:14+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -16,8 +16,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:48+08:00",
-        "officialDatetime": "115/08/10 16:32:48",
+        "checkedAt": "2026-08-10T17:59:14+08:00",
+        "officialDatetime": "115/08/10 17:59:14",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -84,7 +84,7 @@
       "name": "德微",
       "legalName": "德微科技股份有限公司",
       "marketTitle": "24",
-      "lastCheckedAt": "2026-08-10T16:32:49+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:15+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -93,8 +93,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:49+08:00",
-        "officialDatetime": "115/08/10 16:32:49",
+        "checkedAt": "2026-08-10T17:59:15+08:00",
+        "officialDatetime": "115/08/10 17:59:15",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -161,7 +161,7 @@
       "name": "樺漢",
       "legalName": "樺漢科技股份有限公司",
       "marketTitle": "25",
-      "lastCheckedAt": "2026-08-10T16:32:49+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:15+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -170,8 +170,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:49+08:00",
-        "officialDatetime": "115/08/10 16:32:49",
+        "checkedAt": "2026-08-10T17:59:15+08:00",
+        "officialDatetime": "115/08/10 17:59:15",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -238,7 +238,7 @@
       "name": "瑞祺電通",
       "legalName": "瑞祺電通股份有限公司",
       "marketTitle": "27",
-      "lastCheckedAt": "2026-08-10T16:32:50+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:16+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -247,8 +247,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:50+08:00",
-        "officialDatetime": "115/08/10 16:32:49",
+        "checkedAt": "2026-08-10T17:59:16+08:00",
+        "officialDatetime": "115/08/10 17:59:15",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -315,7 +315,7 @@
       "name": "昇貿",
       "legalName": "昇貿科技股份有限公司",
       "marketTitle": "31",
-      "lastCheckedAt": "2026-08-10T16:32:50+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:16+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -324,8 +324,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:50+08:00",
-        "officialDatetime": "115/08/10 16:32:50",
+        "checkedAt": "2026-08-10T17:59:16+08:00",
+        "officialDatetime": "115/08/10 17:59:16",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -392,7 +392,7 @@
       "name": "慶康科技",
       "legalName": "慶康科技股份有限公司",
       "marketTitle": "24",
-      "lastCheckedAt": "2026-08-10T16:32:50+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:17+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -401,8 +401,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:50+08:00",
-        "officialDatetime": "115/08/10 16:32:50",
+        "checkedAt": "2026-08-10T17:59:17+08:00",
+        "officialDatetime": "115/08/10 17:59:16",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -469,7 +469,7 @@
       "name": "世紀鋼",
       "legalName": "世紀鋼鐵結構股份有限公司",
       "marketTitle": "10",
-      "lastCheckedAt": "2026-08-10T16:32:50+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:17+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -478,8 +478,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:50+08:00",
-        "officialDatetime": "115/08/10 16:32:50",
+        "checkedAt": "2026-08-10T17:59:17+08:00",
+        "officialDatetime": "115/08/10 17:59:17",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -546,7 +546,7 @@
       "name": "騰輝電子-KY",
       "legalName": "騰輝電子國際集團股份有限公司",
       "marketTitle": "28",
-      "lastCheckedAt": "2026-08-10T16:32:50+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:18+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -555,8 +555,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:50+08:00",
-        "officialDatetime": "115/08/10 16:32:50",
+        "checkedAt": "2026-08-10T17:59:18+08:00",
+        "officialDatetime": "115/08/10 17:59:17",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -644,7 +644,7 @@
       "name": "中砂",
       "legalName": "中國砂輪企業股份有限公司",
       "marketTitle": "05",
-      "lastCheckedAt": "2026-08-10T16:32:50+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:18+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -653,8 +653,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:50+08:00",
-        "officialDatetime": "115/08/10 16:32:50",
+        "checkedAt": "2026-08-10T17:59:18+08:00",
+        "officialDatetime": "115/08/10 17:59:18",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -721,30 +721,7 @@
       "name": "耀登",
       "legalName": "耀登科技股份有限公司",
       "marketTitle": "27",
-      "lastCheckedAt": "2026-08-10T16:32:51+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
-      "revenue": {
-        "sourceName": "公開資訊觀測站",
-        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
-        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
-        "targetYymm": "11507",
-        "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:51+08:00",
-        "officialDatetime": null,
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
-      }
-    },
-    {
-      "id": "晶呈科技",
-      "code": "4768",
-      "name": "晶呈科技",
-      "legalName": "晶呈科技股份有限公司",
-      "marketTitle": "21",
-      "lastCheckedAt": "2026-08-10T16:32:51+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:18+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -753,8 +730,85 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:51+08:00",
-        "officialDatetime": "115/08/10 16:32:51",
+        "checkedAt": "2026-08-10T17:59:18+08:00",
+        "officialDatetime": "115/08/10 17:59:18",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11507",
+        "companyAbbreviation": "耀登",
+        "marketKindName": "上市公司",
+        "values": {
+          "本月": "139,577",
+          "去年同期": "152,849",
+          "增減金額": "-13,272",
+          "本月增減金額": "-13,272",
+          "增減百分比": "-8.68",
+          "本月增減百分比": "-8.68",
+          "本年累計": "984,463",
+          "去年累計": "894,886",
+          "累計增減金額": "89,577",
+          "累計增減百分比": "10.01",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "139,577"
+          ],
+          [
+            "去年同期",
+            "152,849"
+          ],
+          [
+            "增減金額",
+            "-13,272"
+          ],
+          [
+            "增減百分比",
+            "-8.68"
+          ],
+          [
+            "本年累計",
+            "984,463"
+          ],
+          [
+            "去年累計",
+            "894,886"
+          ],
+          [
+            "增減金額",
+            "89,577"
+          ],
+          [
+            "增減百分比",
+            "10.01"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
+      }
+    },
+    {
+      "id": "晶呈科技",
+      "code": "4768",
+      "name": "晶呈科技",
+      "legalName": "晶呈科技股份有限公司",
+      "marketTitle": "21",
+      "lastCheckedAt": "2026-08-10T17:59:19+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
+      "revenue": {
+        "sourceName": "公開資訊觀測站",
+        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
+        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
+        "targetYymm": "11507",
+        "targetLabel": "2026 年 7 月",
+        "checkedAt": "2026-08-10T17:59:19+08:00",
+        "officialDatetime": "115/08/10 17:59:18",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -821,7 +875,7 @@
       "name": "聖暉*",
       "legalName": "聖暉工程科技股份有限公司",
       "marketTitle": "31",
-      "lastCheckedAt": "2026-08-10T16:32:51+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:19+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -830,8 +884,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:51+08:00",
-        "officialDatetime": "115/08/10 16:32:51",
+        "checkedAt": "2026-08-10T17:59:19+08:00",
+        "officialDatetime": "115/08/10 17:59:19",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -898,7 +952,7 @@
       "name": "桓鼎-KY",
       "legalName": "桓鼎股份有限公司",
       "marketTitle": "14",
-      "lastCheckedAt": "2026-08-10T16:32:52+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:20+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -907,8 +961,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:52+08:00",
-        "officialDatetime": "115/08/10 16:32:51",
+        "checkedAt": "2026-08-10T17:59:20+08:00",
+        "officialDatetime": "115/08/10 17:59:19",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -996,7 +1050,7 @@
       "name": "朋億*",
       "legalName": "朋億股份有限公司",
       "marketTitle": "31",
-      "lastCheckedAt": "2026-08-10T16:32:52+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:20+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1005,8 +1059,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:52+08:00",
-        "officialDatetime": "115/08/10 16:32:52",
+        "checkedAt": "2026-08-10T17:59:20+08:00",
+        "officialDatetime": "115/08/10 17:59:20",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1073,7 +1127,7 @@
       "name": "聯純",
       "legalName": "聯純科技股份有限公司",
       "marketTitle": "35",
-      "lastCheckedAt": "2026-08-10T16:32:52+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:21+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1082,8 +1136,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:52+08:00",
-        "officialDatetime": "115/08/10 16:32:52",
+        "checkedAt": "2026-08-10T17:59:21+08:00",
+        "officialDatetime": "115/08/10 17:59:20",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1150,7 +1204,7 @@
       "name": "藍新資訊",
       "legalName": "藍新資訊股份有限公司",
       "marketTitle": "30",
-      "lastCheckedAt": "2026-08-10T16:32:52+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:22+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1159,8 +1213,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:52+08:00",
-        "officialDatetime": "115/08/10 16:32:52",
+        "checkedAt": "2026-08-10T17:59:22+08:00",
+        "officialDatetime": "115/08/10 17:59:21",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1227,7 +1281,7 @@
       "name": "華勝-KY",
       "legalName": "華勝汽車電子股份有限公司",
       "marketTitle": "12",
-      "lastCheckedAt": "2026-08-10T16:32:53+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:22+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1236,8 +1290,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:53+08:00",
-        "officialDatetime": "115/08/10 16:32:52",
+        "checkedAt": "2026-08-10T17:59:22+08:00",
+        "officialDatetime": "115/08/10 17:59:22",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1325,7 +1379,7 @@
       "name": "樺緯物聯",
       "legalName": "樺緯物聯股份有限公司",
       "marketTitle": "25",
-      "lastCheckedAt": "2026-08-10T16:32:53+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:22+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1334,8 +1388,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:53+08:00",
-        "officialDatetime": "115/08/10 16:32:53",
+        "checkedAt": "2026-08-10T17:59:22+08:00",
+        "officialDatetime": "115/08/10 17:59:22",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1402,7 +1456,7 @@
       "name": "達運光電",
       "legalName": "達運光電股份有限公司",
       "marketTitle": "27",
-      "lastCheckedAt": "2026-08-10T16:32:53+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:23+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1411,8 +1465,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:53+08:00",
-        "officialDatetime": "115/08/10 16:32:53",
+        "checkedAt": "2026-08-10T17:59:23+08:00",
+        "officialDatetime": "115/08/10 17:59:22",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1479,7 +1533,7 @@
       "name": "銘旺科",
       "legalName": "銘旺科技股份有限公司",
       "marketTitle": "26",
-      "lastCheckedAt": "2026-08-10T16:32:53+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:23+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1488,8 +1542,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:53+08:00",
-        "officialDatetime": "115/08/10 16:32:53",
+        "checkedAt": "2026-08-10T17:59:23+08:00",
+        "officialDatetime": "115/08/10 17:59:23",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1556,7 +1610,7 @@
       "name": "擎亞",
       "legalName": "擎亞電子股份有限公司",
       "marketTitle": "29",
-      "lastCheckedAt": "2026-08-10T16:32:53+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:23+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1565,8 +1619,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:53+08:00",
-        "officialDatetime": "115/08/10 16:32:53",
+        "checkedAt": "2026-08-10T17:59:23+08:00",
+        "officialDatetime": "115/08/10 17:59:23",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1633,7 +1687,7 @@
       "name": "豊漁",
       "legalName": "豊漁股份有限公司",
       "marketTitle": "16",
-      "lastCheckedAt": "2026-08-10T16:32:54+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:24+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1642,8 +1696,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:54+08:00",
-        "officialDatetime": "115/08/10 16:32:53",
+        "checkedAt": "2026-08-10T17:59:24+08:00",
+        "officialDatetime": "115/08/10 17:59:23",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1710,7 +1764,7 @@
       "name": "振大環球",
       "legalName": "振大環球股份有限公司",
       "marketTitle": "04",
-      "lastCheckedAt": "2026-08-10T16:32:54+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:24+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1719,8 +1773,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:54+08:00",
-        "officialDatetime": "115/08/10 16:32:54",
+        "checkedAt": "2026-08-10T17:59:24+08:00",
+        "officialDatetime": "115/08/10 17:59:24",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1787,30 +1841,7 @@
       "name": "佐茂",
       "legalName": "佐茂股份有限公司",
       "marketTitle": "25",
-      "lastCheckedAt": "2026-08-10T16:32:54+08:00",
-      "lastStatus": "pending",
-      "lastMessage": "查無相符資料",
-      "revenue": {
-        "sourceName": "公開資訊觀測站",
-        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
-        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
-        "targetYymm": "11507",
-        "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:54+08:00",
-        "officialDatetime": null,
-        "message": "查無相符資料",
-        "status": "pending",
-        "verified": false,
-        "reason": "查無相符資料"
-      }
-    },
-    {
-      "id": "2330",
-      "code": "2330",
-      "name": "台積電",
-      "legalName": "台灣積體電路製造股份有限公司",
-      "marketTitle": "24",
-      "lastCheckedAt": "2026-08-10T16:32:54+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:24+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1819,8 +1850,85 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:54+08:00",
-        "officialDatetime": "115/08/10 16:32:54",
+        "checkedAt": "2026-08-10T17:59:24+08:00",
+        "officialDatetime": "115/08/10 17:59:24",
+        "message": "查詢成功",
+        "status": "updated",
+        "verified": true,
+        "reportedYymm": "11507",
+        "companyAbbreviation": "佐茂",
+        "marketKindName": "興櫃公司",
+        "values": {
+          "本月": "178,653",
+          "去年同期": "139,246",
+          "增減金額": "39,407",
+          "本月增減金額": "39,407",
+          "增減百分比": "28.30",
+          "本月增減百分比": "28.30",
+          "本年累計": "1,070,386",
+          "去年累計": "968,388",
+          "累計增減金額": "101,998",
+          "累計增減百分比": "10.53",
+          "備註/營收變化原因說明": ""
+        },
+        "rawData": [
+          [
+            "本月",
+            "178,653"
+          ],
+          [
+            "去年同期",
+            "139,246"
+          ],
+          [
+            "增減金額",
+            "39,407"
+          ],
+          [
+            "增減百分比",
+            "28.30"
+          ],
+          [
+            "本年累計",
+            "1,070,386"
+          ],
+          [
+            "去年累計",
+            "968,388"
+          ],
+          [
+            "增減金額",
+            "101,998"
+          ],
+          [
+            "增減百分比",
+            "10.53"
+          ],
+          [
+            "備註/營收變化原因說明",
+            ""
+          ]
+        ],
+        "note": " 1.各項增減百分比資訊，如數值逾越999999.99或分母為零（無法計算），則以999999.99表示。\n 2.合併營業收入係將母子公司及各子公司間重複營收部分消除後所得數字。\n 3.自民國95年1月起,金融業之各項營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 4.上市櫃公司、興櫃公司、及金管會主管之金融業自民國102年起適用IFRSs；非上市上櫃興櫃之公發公司(含金控子公司為公發公司之非金融業、投控子公司為公發公司者)，自民國104年起適用IFRSs。配合IFRSs實施，營業收入係以合併營業收入申報；無子公司者，則以個別營業收入申報；自願提前適用IFRSs者亦同。\n 5.自民國102年1月起，配合IFRSs實施，金控業之營業收入係以淨額申報，其營業收入淨額係指「淨收益」。\n 6.上市櫃及興櫃公司，本月營收或本年累計營收較去年同期增減變動達50％以上者，需於備註欄位說明增減變動原因。\n"
+      }
+    },
+    {
+      "id": "2330",
+      "code": "2330",
+      "name": "台積電",
+      "legalName": "台灣積體電路製造股份有限公司",
+      "marketTitle": "24",
+      "lastCheckedAt": "2026-08-10T17:59:24+08:00",
+      "lastStatus": "updated",
+      "lastMessage": "查詢成功",
+      "revenue": {
+        "sourceName": "公開資訊觀測站",
+        "sourceUrl": "https://mops.twse.com.tw/mops/#/web/t05st10_ifrs",
+        "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
+        "targetYymm": "11507",
+        "targetLabel": "2026 年 7 月",
+        "checkedAt": "2026-08-10T17:59:24+08:00",
+        "officialDatetime": "115/08/10 17:59:24",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1887,7 +1995,7 @@
       "name": "凌航",
       "legalName": "凌航科技股份有限公司",
       "marketTitle": "24",
-      "lastCheckedAt": "2026-08-10T16:32:54+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:25+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1896,8 +2004,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:54+08:00",
-        "officialDatetime": "115/08/10 16:32:54",
+        "checkedAt": "2026-08-10T17:59:25+08:00",
+        "officialDatetime": "115/08/10 17:59:24",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -1964,7 +2072,7 @@
       "name": "至上",
       "legalName": "至上電子股份有限公司",
       "marketTitle": "29",
-      "lastCheckedAt": "2026-08-10T16:32:55+08:00",
+      "lastCheckedAt": "2026-08-10T17:59:26+08:00",
       "lastStatus": "updated",
       "lastMessage": "查詢成功",
       "revenue": {
@@ -1973,8 +2081,8 @@
         "sourceApi": "https://mops.twse.com.tw/mops/api/t05st10_ifrs",
         "targetYymm": "11507",
         "targetLabel": "2026 年 7 月",
-        "checkedAt": "2026-08-10T16:32:55+08:00",
-        "officialDatetime": "115/08/10 16:32:54",
+        "checkedAt": "2026-08-10T17:59:26+08:00",
+        "officialDatetime": "115/08/10 17:59:25",
         "message": "查詢成功",
         "status": "updated",
         "verified": true,
@@ -2044,9 +2152,9 @@
     "label": "2026 年 7 月"
   },
   "announcement": {
-    "generatedAt": "2026-08-10T16:32:55+08:00",
+    "generatedAt": "2026-08-10T17:59:26+08:00",
     "headline": "截止今日16:00後 7月月營收",
-    "newlyUpdatedCount": 25,
+    "newlyUpdatedCount": 27,
     "newlyUpdatedNames": [
       "友威科(3580)",
       "德微(3675)",
@@ -2057,6 +2165,7 @@
       "世紀鋼(9958)",
       "騰輝電子-KY(6672)",
       "中砂(1560)",
+      "耀登(3138)",
       "晶呈科技(4768)",
       "聖暉*(5536)",
       "桓鼎-KY(5543)",
@@ -2070,6 +2179,7 @@
       "擎亞(8096)",
       "豊漁(7847)",
       "振大環球(4441)",
+      "佐茂(7854)",
       "台積電(2330)",
       "凌航(3135)",
       "至上(8112)"
@@ -2151,9 +2261,11 @@
           "振大環球(4441)",
           "台積電(2330)",
           "凌航(3135)",
-          "至上(8112)"
+          "至上(8112)",
+          "耀登(3138)",
+          "佐茂(7854)"
         ],
-        "count": 14
+        "count": 16
       },
       {
         "dateLabel": "8/11",
@@ -2163,11 +2275,8 @@
     ],
     "orphanedUpdatedCount": 0,
     "orphanedUpdatedNames": [],
-    "pendingCount": 2,
-    "pendingNames": [
-      "耀登(3138)",
-      "佐茂(7854)"
-    ],
+    "pendingCount": 0,
+    "pendingNames": [],
     "baselineTargetYymm": "11507",
     "baselineUpdatedCodes": [
       "3675",
@@ -2194,7 +2303,9 @@
       "4441",
       "2330",
       "3135",
-      "8112"
+      "8112",
+      "3138",
+      "7854"
     ]
   },
   "schedule": {
@@ -2206,12 +2317,12 @@
     "localUrl": "",
     "networkUrls": []
   },
-  "updatedAt": "2026-08-10T16:32:55+08:00",
+  "updatedAt": "2026-08-10T17:59:26+08:00",
   "excelReport": {
     "available": true,
     "targetYymm": "11507",
     "targetLabel": "2026 年 7 月",
     "file": "data/monthly-revenue-11507.xlsx",
-    "generatedAt": "2026-08-10T16:32:55+08:00"
+    "generatedAt": "2026-08-10T17:59:26+08:00"
   }
 }
